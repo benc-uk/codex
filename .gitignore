@@ -1,0 +1,79 @@
+# .gitignore for .NET projects
+
+# Build results
+bin/
+obj/
+out/
+[Bb]uild/
+[Ll]og/
+[Ll]ogs/
+[Tt]est[Rr]esult*/
+[TestResults]/
+*.trx
+*.coverage
+*.coveragexml
+.coverlet/
+*.binlog
+
+# IDEs and editors
+.vs/
+.idea/
+*.sln.iml
+*.suo
+*.user
+*.rsuser
+*.userosscache
+*.sln.docstates
+.history/
+
+# NuGet
+*.nupkg
+*.snupkg
+# Legacy packages folder (most modern projects use global cache)
+packages/
+
+# Azure Functions local settings (should not be committed)
+local.settings.json
+
+# ASP.NET / data
+App_Data/
+# Local databases
+*.mdf
+*.ldf
+*.db
+*.sqlite
+
+# Diagnostics and profiler
+*.pdb
+*.svclog
+*.pidb
+*.psess
+*.vsp
+*.vspx
+
+# ReSharper / JetBrains
+_ReSharper*/
+*.[Rr]e[Ss]harper*/
+*.DotSettings.user
+
+# BenchmarkDotNet
+BenchmarkDotNet.Artifacts/
+
+# Environment / secrets
+.env
+.env.*
+
+# Node (common in SPA + .NET projects)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Misc temporary files
+*.tmp
+*.bak
+*.swp

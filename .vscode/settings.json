@@ -1,0 +1,13 @@
+{
+  "editor.formatOnSave": true,
+  "editor.detectIndentation": false,
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "[csharp]": {
+    "editor.defaultFormatter": "ms-dotnettools.csharp",
+    "editor.tabSize": 2,
+    "editor.insertSpaces": true
+  },
+  "omnisharp.enableEditorConfigSupport": true,
+  "dotnet.defaultSolution": "codex.slnx"
+}
