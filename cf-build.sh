@@ -7,4 +7,4 @@ chmod +x dotnet-install.sh
 ./dotnet-install.sh -c 10.0 -InstallDir ./dotnet
 ./dotnet/dotnet --version
 
-make build-web
+./dotnet/dotnet publish frontend/frontend.csproj -c Release
