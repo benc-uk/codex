@@ -19,3 +19,7 @@ build-web: # 🏗️ Build web frontend
 install: # 📦 Install dependencies
 	dotnet tool install dotnet-serve
 	dotnet restore codex.slnx
+
+clean: # 🧹 Clean build artifacts
+	dotnet clean codex.slnx
+	rm -rf frontend/bin frontend/obj console/bin console/obj test/bin test/obj

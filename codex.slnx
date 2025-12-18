@@ -1,5 +1,5 @@
 <Solution>
   <Project Path="compiler/compiler.csproj" />
   <Project Path="frontend/frontend.csproj" />
-  <Project Path="testharness/testharness.csproj" />
+  <Project Path="console/console.csproj" />
 </Solution>
