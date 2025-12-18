@@ -4,12 +4,13 @@ using YamlDotNet.RepresentationModel;
 namespace Codex;
 
 public class Compiler {
-  public Story Compile(string source) {
+  public async Task<Story> Compile(string source) {
+    var story = new Story();
+
     var yaml = new YamlStream();
     yaml.Load(new StringReader(source));
 
     var root = (YamlMappingNode)yaml.Documents[0].RootNode;
-    var sections = new Dictionary<string, Section>();
 
     if (root.Children.TryGetValue(new YamlScalarNode("sections"), out var sectionsNode)) {
       var sectionsMap = (YamlMappingNode)sectionsNode;
@@ -17,14 +18,31 @@ public class Compiler {
       foreach (var (keyNode, valueNode) in sectionsMap.Children) {
         var sectionId = ((YamlScalarNode)keyNode).Value!;
         var section = ParseSection(sectionId, (YamlMappingNode)valueNode);
-        sections[sectionId] = section.Result;
+
+        await story.AddSectionAsync(section.Result);
       }
     }
 
-    return new Story { Sections = sections };
+    // Top level vars (global vars)
+    if (root.Children.TryGetValue(new YamlScalarNode("vars"), out var varsNode)) {
+      var varsMap = (YamlMappingNode)varsNode;
+      foreach (var (keyNode, valueNode) in varsMap.Children) {
+        var varName = ((YamlScalarNode)keyNode).Value!;
+        var varValue = ((YamlScalarNode)valueNode).Value!;
+        // Set in Lua state as global variable
+        await Story.State.DoStringAsync($"{varName} = {varValue}");
+      }
+    }
+
+    return story;
   }
 
   private async Task<Section> ParseSection(string id, YamlMappingNode node) {
+    // If id is named "section" that's a problem and reserved word
+    if (id == "section") {
+      throw new CompileException("Section ID cannot be 'section' as it is a reserved word.");
+    }
+
     var text = "";
 
     if (node.Children.TryGetValue(new YamlScalarNode("text"), out var textNode)) {
@@ -52,9 +70,14 @@ public class Compiler {
       foreach (var (keyNode, valueNode) in varsMap.Children) {
         var varName = ((YamlScalarNode)keyNode).Value!;
         var varValue = ((YamlScalarNode)valueNode).Value!;
-        // Initialize Lua variable
-        await section.luaState.DoStringAsync($"{varName} = {varValue}");
+        section.InitialVars[varName] = varValue;
       }
+    }
+
+    // run Lua 
+    if (node.Children.TryGetValue(new YamlScalarNode("run"), out var runNode)) {
+      var runLua = ((YamlScalarNode)runNode).Value!;
+      section.runLua = runLua;
     }
 
     return section;
@@ -76,6 +99,8 @@ public class Compiler {
       string? text = null;
       string? gotoTarget = null;
       string? triggerTarget = null;
+      string? ifCondition = null;
+      string? runLua = null;
 
       if (mappingNode.Children.TryGetValue(new YamlScalarNode("text"), out var textNode)) {
         text = ((YamlScalarNode)textNode).Value;
@@ -89,12 +114,25 @@ public class Compiler {
         triggerTarget = ((YamlScalarNode)triggerNode).Value;
       }
 
+      if (mappingNode.Children.TryGetValue(new YamlScalarNode("if"), out var ifNode)) {
+        ifCondition = ((YamlScalarNode)ifNode).Value;
+      }
+
+      if (mappingNode.Children.TryGetValue(new YamlScalarNode("run"), out var runNode)) {
+        runLua = ((YamlScalarNode)runNode).Value;
+      }
+
       if (text == null) {
         throw new CompileException($"Option '{id}' must have a 'text' property");
       }
 
       if (gotoTarget != null) {
-        return new GotoOption(id, text, gotoTarget);
+        var option = new GotoOption(id, text, gotoTarget);
+
+        option.ifCondition = ifCondition ?? "";
+        option.runLua = runLua ?? "";
+
+        return option;
       } else if (triggerTarget != null) {
         // return new TriggerOption(id, text, triggerTarget);
         throw new CompileException($"TriggerOption is not implemented yet");

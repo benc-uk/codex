@@ -6,7 +6,7 @@ vars:
   skill: 10
   luck: 5
   stamina: 20
-  bag: []
+  #bag: []
 
 sections:
   start:
@@ -17,15 +17,20 @@ sections:
       enter:
         text: "Enter the cave"
         goto: dark_tunnel
+
       go_out: ["Return to your camp outside", camp_outside]
+
       search:
         text: "Search the area"
-        if: not searched
-        run: searched = true
+        if: not section.searched
+        run: section.searched = true
         goto: search_cave_area
 
   camp_outside:
-    text: "You decide to leave the cave and return to your camp outside. The sun is shining, and the birds are chirping."
+    text: "You decide to leave the cave and return to your camp outside. The sun is shining, and the birds are chirping. Your stamina is increased by {section.inc_stamina} after a restful break. Your stamina is now {stamina}."
+    vars:
+      inc_stamina: "[1D6 + 2]"
+    run: stamina = stamina + section.inc_stamina
     options:
       return: ["Return to the cave entrance", start]
 
@@ -44,6 +49,8 @@ sections:
     text: "You find yourself in a damp chamber with a small underground pool of water."
 
   search_cave_area:
-    text: "You find a rusty old lantern half-buried in the dirt."
+    text: "You find {section.gold} gold coins hidden under some rocks near the cave entrance."
+    vars:
+      gold: "[2D6 + 4]"
     options:
       back: ["Return to the cave entrance", start]
