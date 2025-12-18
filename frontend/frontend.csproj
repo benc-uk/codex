@@ -3,4 +3,9 @@
     <TargetFramework>net10.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\compiler\compiler.csproj" />
+  </ItemGroup>
+
 </Project>

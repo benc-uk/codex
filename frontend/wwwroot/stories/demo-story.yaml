@@ -1,0 +1,67 @@
+title: A Test Adventure
+author: Test Author
+version: 1.0
+
+vars:
+  skill: 10
+  luck: 5
+  stamina: 20
+  #bag: []
+
+sections:
+  start:
+    text: "You stand at the entrance of a dark cave. The air is damp and the sound of dripping water echoes from within. There is moss and lichen growing on the walls, there is rubble and rocks on the ground. The cave extends into darkness ahead."
+    vars:
+      searched: false
+    options:
+      enter:
+        text: "Enter the cave"
+        goto: dark_tunnel
+
+      go_out: ["Return to your camp outside", camp_outside]
+
+      search:
+        text: "Search the area"
+        if: not section.searched
+        run: section.searched = true
+        goto: search_cave_area
+
+  camp_outside:
+    text: "You decide to leave the cave and return to your camp outside. The sun is shining, and the birds are chirping. Your stamina is increased by {section.inc_stamina} after a restful break. Your stamina is now {stamina}."
+    vars:
+      inc_stamina: "[1D6 + 2]"
+    run: stamina = stamina + section.inc_stamina
+    options:
+      return: ["Return to the cave entrance", start]
+
+  dark_tunnel:
+    text: "You venture deeper into the cave, the darkness enveloping you. You can barely see a few feet ahead."
+    options:
+      left_path: ["Take the left path", left_chamber]
+      right_path: ["Take the right path", right_chamber]
+
+  left_chamber:
+    text: "You enter a chamber filled with glittering crystals that reflect the faint light from your lantern."
+    vars: { crystal_taken: false }
+    options:
+      return: ["Return to the dark tunnel", dark_tunnel]
+      take_crystal:
+        text: "Take a crystal"
+        if: not section.crystal_taken
+        run: section.crystal_taken = true
+        goto: taken_a_crystal
+
+  taken_a_crystal:
+    text: "You carefully pick up one of the crystals. It feels cool to the touch and seems to hum with a faint energy. You place it in your bag."
+    options:
+      back: ["Return to the left chamber", left_chamber]
+
+  right_chamber:
+    text: "You find yourself in a damp chamber with a small underground pool of water. You adventure ends here as I can't be bothered to write more."
+
+  search_cave_area:
+    text: "You find {section.gold} gold coins hidden under some rocks near the cave entrance."
+    vars:
+      gold: "[2D6 + 4]"
+    options:
+      back: ["Return to the cave entrance", start]

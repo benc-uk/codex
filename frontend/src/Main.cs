@@ -1,42 +1,28 @@
 using System;
-using System.Collections.Generic;
+using System.Net.Http;
 using System.Runtime.InteropServices.JavaScript;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 
-public partial class WasmEntry
-{
-  public static void Main()
-  {
+public partial class WasmEntry {
+  public static async Task Main() {
     Console.WriteLine("WASM Entry Point Initialized");
 
-    var optionsJson = createOptions(
-     "Look around the cave",
-     "Move deeper into the cave",
-     "Exit the cave"
-   );
+    // In WASM, use HttpClient to fetch files from wwwroot
+    // Need to get the base URL from the browser
+    var baseUrl = GetBaseUrl();
+    using var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
+    var source = await httpClient.GetStringAsync("stories/demo-story.yaml");
 
-    renderSection("cave", @"You stand at the entrance of a dark cave. 
-            The air is damp and the sound of dripping water echoes from within. 
-            There is moss and lichen growing on the walls, and the faint glimmer of crystals catches your eye. 
-            The cave extends into darkness ahead.", optionsJson);
+    Console.WriteLine("Story file loaded.", source);
+
+    var compiler = new Codex.Compiler();
+    var story = await compiler.Compile(source);
+    var runner = new WebRunner(story);
+
+    // Start the story
+    story.Run(runner);
   }
 
-  private static string createOptions(params string[] options)
-  {
-    var optionsDict = new Dictionary<string, string>();
-    for (int i = 0; i < options.Length; i++)
-    {
-      optionsDict[$"option{i + 1}"] = options[i];
-    }
-    return JsonSerializer.Serialize(optionsDict, AppJsonContext.Default.DictionaryStringString);
-  }
-
-  [JSImport("renderSection", "codex")]
-  internal static partial bool renderSection(string id, string desc, string optionsJson);
-}
-
-[JsonSerializable(typeof(Dictionary<string, string>))]
-internal partial class AppJsonContext : JsonSerializerContext
-{
+  [JSImport("globalThis.location.origin.toString", "")]
+  private static partial string GetBaseUrl();
 }

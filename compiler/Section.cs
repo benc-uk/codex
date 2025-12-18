@@ -47,6 +47,13 @@ public class Section {
     return availableOptions;
   }
 
+  public IOption? GetOption(string optionId) {
+    if (Options.ContainsKey(optionId) && Options[optionId].IsAvailable(this)) {
+      return Options[optionId];
+    }
+    return null;
+  }
+
   public async Task<string> GetVar(string name) {
     await Story.State.DoStringAsync($"section = {Id}");
     var res = await Story.State.DoStringAsync($"return {name}");

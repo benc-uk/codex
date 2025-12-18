@@ -1,22 +1,16 @@
-// options is a JSON string of key-value pairs
-export function renderSection(id, desc, optionsJson) {
-  const options = JSON.parse(optionsJson);
-  console.log("renderSection called from WASM:");
-  console.log("id: " + id);
-  console.log("desc: " + desc);
-  console.log("options:");
-  console.dir(options);
+export function renderSection(id, text, optionIds, optionTexts) {
+  document.getElementById("title").innerText = `Section ${id}`;
+  document.getElementById("text").innerText = text;
 
-  document.querySelector("#main").innerHTML = `
-      <h2>${id}</h2>
-      <p>${desc}</p>
-      <ul>
-        ${Object.entries(options)
-          .map(([key, value]) => `<li onclick="alert('${key}')">${value}</li>`)
-          .join("")}
-      </ul>
+  const optionsList = document.getElementById("options");
+  optionsList.innerHTML = ""; // Clear existing options
 
-  `;
+  for (let i = 0; i < optionIds.length; i++) {
+    const li = document.createElement("li");
+    li.onclick = () =>
+      globalThis.wasmExports.WebRunner.TakeOption(optionIds[i]);
+    li.innerText = optionTexts[i];
 
-  return true;
+    optionsList.appendChild(li);
+  }
 }

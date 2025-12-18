@@ -10,6 +10,12 @@ help: # 💬 Show this help message
 run: # 🧪 Run test harness
 	dotnet run --project console/console.csproj -- ./test/demo-story.yaml
 
+run-web: # 🌐 Run web frontend
+	dotnet watch --project frontend/frontend.csproj
+
+build-web: # 🏗️ Build web frontend
+	dotnet publish frontend/frontend.csproj -c $(CONFIG)
+
 install: # 📦 Install dependencies
 	dotnet tool install dotnet-serve
 	dotnet restore codex.slnx
