@@ -58,21 +58,26 @@ sections:
     text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from."
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
-      take_red_crystal:
-        text: "Take one of the red glowing crystals"
-        if: not have_crystal
-        run: have_crystal = true
-        notify: "You carefully pick up one of the red glowing crystals. It emits a gentle light, illuminating your surroundings."
-        goto: left_chamber
       take_blue_crystal:
         text: "Take one of the blue glowing crystals"
         if: not have_crystal
         run: stamina = stamina - 2
         notify: "As you reach for one of the blue crystals, a sudden chill runs through your body, sapping some of your stamina."
         goto: left_chamber
+      take_green_crystal:
+        text: "Take one of the green glowing crystals"
+        if: not have_crystal
+        notify: "You pick up one of the green crystals, it looks useless you decide to leave it be."
+        goto: left_chamber
+      take_red_crystal:
+        text: "Take one of the red glowing crystals"
+        if: not have_crystal
+        run: have_crystal = true
+        notify: "You carefully pick up one of the red glowing crystals. It emits a gentle light, illuminating your surroundings."
+        goto: left_chamber
 
   right_chamber:
-    text: "You find yourself in a damp chamber with a small underground pool of water. The walls glisten with moisture, and you can see small fish swimming in the pool. The air is cool and fresh, a stark contrast to the dark tunnel you came from."
+    text: "You find yourself in a damp chamber with a small underground pool of water. The walls glisten with moisture, and you can see {section.fish} small fish swimming in the pool. The air is cool and fresh, a stark contrast to the dark tunnel you came from."
     run: if not section.fish then section.fish = d(6) + d(6) end
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
