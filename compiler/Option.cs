@@ -6,53 +6,61 @@ public class GotoOption : OptionBase {
   public GotoOption(string id, string text, string targetSectionId) : base(id, text, targetSectionId) { }
 
   public override void Execute(Story story, Section currentSection) {
-    if (!story.Sections.ContainsKey(TargetId)) {
-      throw new InvalidOperationException($"Target section '{TargetId}' does not exist in the story.");
+    if (!story.Sections.ContainsKey(targetId)) {
+      throw new InvalidOperationException($"Target section '{targetId}' does not exist in the story.");
     }
 
-    var targetSection = story.Sections[TargetId];
+    var targetSection = story.Sections[targetId];
     if (!string.IsNullOrWhiteSpace(runLua)) {
-      Story.State.DoStringAsync($"section = {currentSection.Id}");
-      _ = Story.State.DoStringAsync(runLua).Result;
+      _ = Story.RunLua(runLua).Result;
+    }
+
+    if (notifyMessage != null && notifyMessage.Length > 0) {
+      story.runner?.Notify(currentSection.parseText(notifyMessage));
     }
 
     story.runner?.GotoSection(targetSection);
   }
 }
 
+// ============================================================================================
+
 public interface IOption {
   public string Id { get; }
   public string Text { get; }
 
   public void Execute(Story story, Section currentSection);
-  internal bool IsAvailable(Section section);
+  internal bool IsAvailable();
 }
+
+// ============================================================================================
 
 public abstract class OptionBase : IOption {
   public string Id { get; }
   public string Text { get; }
 
-  protected string TargetId;
+  protected string targetId;
 
   internal string ifCondition = "";
 
   internal string runLua = "";
 
-  protected OptionBase(string id, string text, string targetId) {
+  internal string? notifyMessage = null;
+
+  protected OptionBase(string id, string text, string target) {
     Id = id;
     Text = text;
-    TargetId = targetId;
+    targetId = target;
   }
 
   public abstract void Execute(Story story, Section currentSection);
 
-  public virtual bool IsAvailable(Section section) {
+  public virtual bool IsAvailable() {
     if (string.IsNullOrWhiteSpace(ifCondition)) {
       return true;
     }
 
-    _ = Story.State.DoStringAsync($"section = {section.Id}").Result;
-    var result = Story.State.DoStringAsync($"return {ifCondition}").Result;
+    var result = Story.RunLua($"return {ifCondition}").Result;
     if (result != null && result.Length > 0 && result[0].Type == LuaValueType.Boolean) {
       bool boolResult = result[0].ToBoolean();
       return boolResult;

@@ -1,28 +1,33 @@
 using System;
 using System.Net.Http;
-using System.Runtime.InteropServices.JavaScript;
 using System.Threading.Tasks;
 
-public partial class WasmEntry {
-  public static async Task Main() {
-    Console.WriteLine("WASM Entry Point Initialized");
+public partial class WasmEntry
+{
+  public static async Task Main(string[] args)
+  {
+    Console.WriteLine("Codex WASM entry point initialized.");
 
-    // In WASM, use HttpClient to fetch files from wwwroot
-    // Need to get the base URL from the browser
-    var baseUrl = GetBaseUrl();
-    using var httpClient = new HttpClient { BaseAddress = new Uri(baseUrl) };
-    var source = await httpClient.GetStringAsync("stories/demo-story.yaml");
+    if (args.Length < 1)
+    {
+      Console.WriteLine("Please provide the story URL as a command-line argument.");
+      return;
+    }
 
-    Console.WriteLine("Story file loaded.", source);
+    var storyUrl = args[0];
+    Console.WriteLine($"Loading story from URL: {storyUrl}");
+
+    using var httpClient = new HttpClient();
+    var source = await httpClient.GetStringAsync(storyUrl);
+
+    Console.WriteLine($"Story file loaded, length: {source.Length} characters.");
 
     var compiler = new Codex.Compiler();
     var story = await compiler.Compile(source);
+    Console.WriteLine($"Story '{story.Title}' compiled with {story.Sections.Count} sections.");
     var runner = new WebRunner(story);
 
     // Start the story
     story.Run(runner);
   }
-
-  [JSImport("globalThis.location.origin.toString", "")]
-  private static partial string GetBaseUrl();
 }

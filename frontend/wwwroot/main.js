@@ -1,22 +1,18 @@
 import { dotnet } from "./_framework/dotnet.js";
-import { renderSection } from "./codex.js";
+import { renderSection, notify } from "./codex.js";
 
 const { setModuleImports, getAssemblyExports, getConfig, runMain } =
   await dotnet
     .withDiagnosticTracing(false)
-    .withApplicationArgumentsFromQuery()
+    .withApplicationArguments(window.location.href + "stories/cave.yaml")
     .create();
 
 setModuleImports("codex", {
   renderSection,
+  notify,
 });
 
-const config = getConfig();
-const exports = await getAssemblyExports(config.mainAssemblyName);
-
 // Expose WASM exports globally so codex.js can call them
-globalThis.wasmExports = exports;
-// Also expose takeOption globally for onclick handlers
-// globalThis.takeOption = takeOption;
+globalThis.wasmExports = await getAssemblyExports(getConfig().mainAssemblyName);
 
 await runMain();

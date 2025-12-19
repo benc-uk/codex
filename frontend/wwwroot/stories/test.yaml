@@ -1,0 +1,42 @@
+title: Combat Test
+author: Test Author
+version: 1.0
+
+vars:
+  skill: 10
+  luck: 5
+  stamina: 20
+
+sections:
+  start:
+    title: "The Goblin's Den"
+    text: "You are in a dusty cave. A goblin blocks your path."
+    vars:
+      searched: false
+    options:
+      enter:
+        text: "Fight!"
+        goto: fight_goblin
+
+  fight_goblin:
+    title: "Goblin Battle"
+    text: |
+      You are engaged in combat with a ugly goblin.
+      They have {section.goblin_hp} HP left.
+    vars:
+      goblin_hp: 10
+      damage: 0
+    options:
+      victory:
+        text: "Collect your reward."
+        if: section.goblin_hp <= 0
+        goto: goblin_victory
+      continue_fight:
+        text: "Strike!"
+        if: section.goblin_hp > 0
+        run: damage = d(6); section.goblin_hp = math.max(section.goblin_hp - damage, 0)
+        notify: "You hit the goblin for {damage} damage!"
+        goto: fight_goblin
+
+  goblin_victory:
+    text: "You have defeated the goblin and found a treasure chest!"

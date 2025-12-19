@@ -5,4 +5,6 @@ public interface IRunner {
   public Section? currentSection { get; set; }
 
   void GotoSection(Section section);
+
+  void Notify(string message);
 }

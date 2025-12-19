@@ -29,9 +29,13 @@ public class Compiler {
       foreach (var (keyNode, valueNode) in varsMap.Children) {
         var varName = ((YamlScalarNode)keyNode).Value!;
         var varValue = ((YamlScalarNode)valueNode).Value!;
-        // Set in Lua state as global variable
-        await Story.State.DoStringAsync($"{varName} = {varValue}");
+        await Story.RunLua($"{varName} = {varValue}");
       }
+    }
+
+    // title
+    if (root.Children.TryGetValue(new YamlScalarNode("title"), out var titleNode)) {
+      story.Title = ((YamlScalarNode)titleNode).Value!;
     }
 
     return story;
@@ -44,12 +48,16 @@ public class Compiler {
     }
 
     var text = "";
-
     if (node.Children.TryGetValue(new YamlScalarNode("text"), out var textNode)) {
       text = ((YamlScalarNode)textNode).Value ?? "";
     }
 
     var section = new Section(id, text);
+
+    // title
+    if (node.Children.TryGetValue(new YamlScalarNode("title"), out var titleNode)) {
+      section.title = ((YamlScalarNode)titleNode).Value!;
+    }
 
     // options
     if (node.Children.TryGetValue(new YamlScalarNode("options"), out var optionsNode)) {
@@ -59,26 +67,27 @@ public class Compiler {
         var optionId = ((YamlScalarNode)keyNode).Value!;
         var option = ParseOption(optionId, valueNode);
         if (option != null) {
-          section.Options[optionId] = option;
+          section.options[optionId] = option;
         }
       }
     }
 
-    // vars
-    if (node.Children.TryGetValue(new YamlScalarNode("vars"), out var varsNode)) {
-      var varsMap = (YamlMappingNode)varsNode;
-      foreach (var (keyNode, valueNode) in varsMap.Children) {
-        var varName = ((YamlScalarNode)keyNode).Value!;
-        var varValue = ((YamlScalarNode)valueNode).Value!;
-        section.InitialVars[varName] = varValue;
-      }
-    }
+    // // vars
+    // if (node.Children.TryGetValue(new YamlScalarNode("vars"), out var varsNode)) {
+    //   var varsMap = (YamlMappingNode)varsNode;
+    //   foreach (var (keyNode, valueNode) in varsMap.Children) {
+    //     var varName = ((YamlScalarNode)keyNode).Value!;
+    //     var varValue = ((YamlScalarNode)valueNode).Value!;
+    //     section.initialVars[varName] = varValue;
+    //   }
+    // }
 
     // run Lua 
     if (node.Children.TryGetValue(new YamlScalarNode("run"), out var runNode)) {
       var runLua = ((YamlScalarNode)runNode).Value!;
       section.runLua = runLua;
     }
+
 
     return section;
   }
@@ -98,9 +107,9 @@ public class Compiler {
     if (node is YamlMappingNode mappingNode) {
       string? text = null;
       string? gotoTarget = null;
-      string? triggerTarget = null;
       string? ifCondition = null;
       string? runLua = null;
+      string? notify = null;
 
       if (mappingNode.Children.TryGetValue(new YamlScalarNode("text"), out var textNode)) {
         text = ((YamlScalarNode)textNode).Value;
@@ -110,16 +119,16 @@ public class Compiler {
         gotoTarget = ((YamlScalarNode)gotoNode).Value;
       }
 
-      if (mappingNode.Children.TryGetValue(new YamlScalarNode("trigger"), out var triggerNode)) {
-        triggerTarget = ((YamlScalarNode)triggerNode).Value;
-      }
-
       if (mappingNode.Children.TryGetValue(new YamlScalarNode("if"), out var ifNode)) {
         ifCondition = ((YamlScalarNode)ifNode).Value;
       }
 
       if (mappingNode.Children.TryGetValue(new YamlScalarNode("run"), out var runNode)) {
         runLua = ((YamlScalarNode)runNode).Value;
+      }
+
+      if (mappingNode.Children.TryGetValue(new YamlScalarNode("notify"), out var notifyNode)) {
+        notify = ((YamlScalarNode)notifyNode).Value;
       }
 
       if (text == null) {
@@ -131,11 +140,9 @@ public class Compiler {
 
         option.ifCondition = ifCondition ?? "";
         option.runLua = runLua ?? "";
+        option.notifyMessage = notify ?? "";
 
         return option;
-      } else if (triggerTarget != null) {
-        // return new TriggerOption(id, text, triggerTarget);
-        throw new CompileException($"TriggerOption is not implemented yet");
       } else {
         throw new CompileException($"Option '{id}' must have either 'goto' or 'trigger'");
       }

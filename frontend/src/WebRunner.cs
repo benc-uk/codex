@@ -17,12 +17,19 @@ public partial class WebRunner : IRunner {
 
   public void GotoSection(Section section) {
     // Run any section Lua code
-    section.Run().Wait();
+    section.Start();
     currentSection = section;
     var optionsList = section.GetOptions();
     var optionsIds = optionsList.Keys.ToArray();
     var optionsTexts = optionsList.Values.Select(o => o.Text).ToArray();
-    RenderSection(section.Id, section.Text, optionsIds, optionsTexts);
+
+    // Invoke JS to render the section
+    Interop.RenderSection(section.Id, section.Text, section.Title, optionsIds, optionsTexts);
+  }
+
+  public void Notify(string message) {
+    // Invoke JS to show notification
+    Interop.Notify(message);
   }
 
   [JSExport]
@@ -40,6 +47,5 @@ public partial class WebRunner : IRunner {
     option.Execute(_instance.story, _instance.currentSection);
   }
 
-  [JSImport("renderSection", "codex")]
-  public static partial void RenderSection(string id, string text, string[] optionIds, string[] optionTexts);
+
 }

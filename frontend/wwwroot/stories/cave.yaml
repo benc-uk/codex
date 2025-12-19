@@ -1,0 +1,85 @@
+title: A Test Adventure
+author: Test Author
+version: 1.0
+
+vars:
+  skill: 10
+  luck: 5
+  stamina: 20
+  gold: 0
+  #bag: []
+  have_crystal: false
+
+sections:
+  start:
+    text: "You stand at the entrance of a dark cave. The air is damp and the sound of dripping water echoes from within. There is moss and lichen growing on the walls, there is rubble and rocks on the ground. The cave extends into darkness ahead."
+    options:
+      enter:
+        text: "Enter the cave"
+        goto: dark_tunnel
+
+      go_out: ["Return to your camp", camp_outside]
+
+      search:
+        text: "Search the area"
+        if: not section.searched
+        run: |
+          section.searched = true
+          temp.gold = d(8) + 2;
+        notify: "You find {temp.gold} gold coins hidden under some rocks near the cave entrance."
+        goto: start
+
+  camp_outside:
+    text: "You decide to return to your camp. There is a small clearing with a fire pit and some basic supplies.\n\nThe sun is shining, and the birds are chirping. You feel a sense of peace and tranquility in contrast to the dread lurking within the cave."
+    options:
+      return: ["Back to cave entrance", start]
+      rest:
+        text: "Rest at your camp"
+        if: not section.inc_stamina
+        run: section.inc_stamina = d(3); stamina = stamina + section.inc_stamina
+        notify: "You rest for a while at your camp and regain {section.inc_stamina} stamina."
+        goto: camp_outside
+
+  dark_tunnel:
+    text: "You venture deeper into the cave, it's nearly pitch black and you can barely see anything. The walls are damp and the air is cool. You can hear the sound of dripping water echoing through the tunnel. After a few moments, you come to a fork in the path."
+    options:
+      left_path: ["Take the left path", left_chamber]
+      right_path:
+        text: "Take the right path"
+        if: not have_crystal
+        notify: "It's too dark to go that way without a light source"
+        goto: dark_tunnel
+      right_path_lit:
+        text: "Take the right path"
+        if: have_crystal
+        goto: right_chamber
+
+  left_chamber:
+    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from."
+    options:
+      return: ["Return to the dark tunnel", dark_tunnel]
+      take_red_crystal:
+        text: "Take one of the red glowing crystals"
+        if: not have_crystal
+        run: have_crystal = true
+        notify: "You carefully pick up one of the red glowing crystals. It emits a gentle light, illuminating your surroundings."
+        goto: left_chamber
+      take_blue_crystal:
+        text: "Take one of the blue glowing crystals"
+        if: not have_crystal
+        run: stamina = stamina - 2
+        notify: "As you reach for one of the blue crystals, a sudden chill runs through your body, sapping some of your stamina."
+        goto: left_chamber
+
+  right_chamber:
+    text: "You find yourself in a damp chamber with a small underground pool of water. The walls glisten with moisture, and you can see small fish swimming in the pool. The air is cool and fresh, a stark contrast to the dark tunnel you came from."
+    run: if not section.fish then section.fish = d(6) + d(6) end
+    options:
+      return: ["Return to the dark tunnel", dark_tunnel]
+      fish:
+        text: "Try to catch some fish"
+        if: section.fish > 0
+        run: stamina = stamina - 2
+          section.fish = section.fish - 1
+        notify: "You catch a small fish from the pool and feel a bit tired from the effort."
+        goto: right_chamber

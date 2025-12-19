@@ -1,16 +1,32 @@
-export function renderSection(id, text, optionIds, optionTexts) {
-  document.getElementById("title").innerText = `Section ${id}`;
-  document.getElementById("text").innerText = text;
+const sectionTitle = document.querySelector("header");
+const sectionMain = document.querySelector("main");
+const optionsList = document.querySelector("nav");
+const dialog = document.querySelector("dialog");
 
-  const optionsList = document.getElementById("options");
+export function renderSection(id, text, title, optionIds, optionTexts) {
+  sectionTitle.innerText = title ? title : makeTitleFromId(id);
+  sectionMain.innerText = text;
+
   optionsList.innerHTML = ""; // Clear existing options
 
   for (let i = 0; i < optionIds.length; i++) {
-    const li = document.createElement("li");
-    li.onclick = () =>
+    const div = document.createElement("div");
+    div.onclick = () =>
       globalThis.wasmExports.WebRunner.TakeOption(optionIds[i]);
-    li.innerText = optionTexts[i];
+    div.innerText = optionTexts[i];
 
-    optionsList.appendChild(li);
+    optionsList.appendChild(div);
   }
+}
+
+export function notify(message) {
+  dialog.querySelector("p").innerText = message;
+  dialog.showModal();
+}
+
+function makeTitleFromId(id) {
+  return id
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
 }

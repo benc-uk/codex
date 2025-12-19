@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Codex Test Harness</title>
+    <title>Codex Adventure</title>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="./assets/main.css" />
     <script type="module" src="./main.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -16,10 +16,21 @@
   </head>
 
   <body>
-    <section id="main">
-      <h1 id="title">Loading...</h1>
-      <p id="text">Please wait while the story loads.</p>
-      <ul id="options"></ul>
+    <section>
+      <header>Loading...</header>
+      <hr />
+      <main>Please wait while the story loads.</main>
+      <hr />
+      <nav></nav>
     </section>
+
+    <dialog>
+      <p>This is a dialog box.</p>
+      <footer>
+        <button autofocus onclick="document.querySelector('dialog').close()">
+          OK
+        </button>
+      </footer>
+    </dialog>
   </body>
 </html>
