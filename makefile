@@ -1,6 +1,6 @@
 LOCAL_PORT ?= 8000
 CONFIG ?= Debug
-STORY_FILE ?= frontend/wwwroot/stories/test.yaml
+STORY_FILE ?= stories/test.yaml
 
 .DEFAULT_GOAL := help
 .PHONY: help testharness install

@@ -21,6 +21,7 @@ init: |
     else
       msg = msg.."It's a tie! No damage dealt."
     end
+    return enemy_stamina
   end
 
 sections:
@@ -47,7 +48,7 @@ sections:
       fight:
         text: "Hit the enemy!"
         if: section.goblin_hp > 0
-        run: battle("goblin", temp.goblin_skill, section.goblin_hp)
+        run: section.goblin_hp = battle("goblin", temp.goblin_skill, section.goblin_hp)
         goto: fight_goblin
         notify: "{msg}"
       run_away:
