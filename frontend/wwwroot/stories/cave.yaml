@@ -3,7 +3,7 @@ author: Test Author
 version: 1.0
 
 vars:
-  skill: 11
+  skill: 9
   luck: 5
   stamina: 20
   gold: 0
@@ -27,7 +27,8 @@ init: |
     return enemy_stamina
   end
 
-  stamina = d(6) + 12
+  stamina = d(6) + 8
+  skill = d(6) + 6
 
 sections:
   start:
@@ -137,7 +138,7 @@ sections:
     title: "Goblin Battle"
     text: "You are engaged in combat with a ugly goblin.\nThey have {section.goblin_hp} HP left."
     run_once: section.goblin_hp = 7
-    run: temp.goblin_skill = 5
+    run: temp.goblin_skill = 7
     options:
       victory:
         text: "Collect your reward."
