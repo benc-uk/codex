@@ -3,15 +3,34 @@ author: Test Author
 version: 1.0
 
 vars:
-  skill: 10
+  skill: 11
   luck: 5
   stamina: 20
   gold: 0
   #bag: []
   have_crystal: false
+  fish: 0
+
+init: |
+  function battle(name, enemy_skill, enemy_stamina)
+    temp.player_attack = d(6) + d(6) + skill
+    temp.goblin_attack = d(6) + d(6) + enemy_skill
+    msg = "Your attack roll: "..temp.player_attack.."\nThe enemy rolls: "..temp.goblin_attack.."\n\n"
+    if temp.player_attack > temp.goblin_attack then
+      enemy_stamina = math.max(0, enemy_stamina - 2)
+      msg = msg.."You hit the "..name.." for 2 damage!"
+    elseif temp.goblin_attack > temp.player_attack then
+      stamina = stamina - 2
+      msg = msg.."The "..name.." hits you for 2 damage!"
+    else
+      msg = msg.."It's a tie! No damage dealt."
+    end
+    return enemy_stamina
+  end
 
 sections:
   start:
+    title: "Cave Entrance"
     text: "You stand at the entrance of a dark cave. The air is damp and the sound of dripping water echoes from within. There is moss and lichen growing on the walls, there is rubble and rocks on the ground. The cave extends into darkness ahead."
     options:
       enter:
@@ -30,6 +49,7 @@ sections:
         goto: start
 
   camp_outside:
+    title: "Camp Outside the Cave"
     text: "You decide to return to your camp. There is a small clearing with a fire pit and some basic supplies.\n\nThe sun is shining, and the birds are chirping. You feel a sense of peace and tranquility in contrast to the dread lurking within the cave."
     options:
       return: ["Back to cave entrance", start]
@@ -55,6 +75,7 @@ sections:
         goto: right_chamber
 
   left_chamber:
+    title: "Glowing Crystal Chamber"
     text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from."
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
@@ -77,8 +98,9 @@ sections:
         goto: left_chamber
 
   right_chamber:
+    title: "Underground Pool"
     text: "You find yourself in a damp chamber with a small underground pool of water. The walls glisten with moisture, and you can see {section.fish} small fish swimming in the pool. The air is cool and fresh, a stark contrast to the dark tunnel you came from."
-    run: if not section.fish then section.fish = d(6) + d(6) end
+    run: if not section.fish then section.fish = d(4) + d(4) end
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
       fish:
@@ -86,5 +108,52 @@ sections:
         if: section.fish > 0
         run: stamina = stamina - 2
           section.fish = section.fish - 1
+          fish = fish + 1
         notify: "You catch a small fish from the pool and feel a bit tired from the effort."
         goto: right_chamber
+      go_deeper:
+        text: "Go deeper into the cave"
+        goto: goblin_den
+
+  goblin_den:
+    title: "The Goblin's Den"
+    text: "You are in a filthy cave, bones and scraps of old belongings are scattered about. A goblin blocks your path."
+    options:
+      fight:
+        text: "Fight the goblin"
+        goto: fight_goblin
+      go_back: ["Retreat", right_chamber]
+
+  fight_goblin:
+    title: "Goblin Battle"
+    text: "You are engaged in combat with a ugly goblin.\nThey have {section.goblin_hp} HP left."
+    run_once: section.goblin_hp = 7
+    run: temp.goblin_skill = 5
+    options:
+      victory:
+        text: "Collect your reward."
+        if: section.goblin_hp <= 0
+        run: temp.gold = d(10) + 5
+        notify: "You have defeated the goblin and found {temp.gold} gold coins in filthy pouch"
+        goto: end
+      fight:
+        text: "Hit the enemy!"
+        if: section.goblin_hp > 0
+        run: section.goblin_hp = battle("goblin", temp.goblin_skill, section.goblin_hp)
+        goto: fight_goblin
+        notify: "{msg}"
+      run_away:
+        text: "Flee!"
+        if: section.visits > 3 and section.goblin_hp > 0
+        notify: "You have fled the battle!"
+        goto: right_chamber
+      hand_over_fish:
+        text: "Offer fish to the goblin"
+        if: fish > 1 and section.goblin_hp > 0
+        run: fish = 0; section.goblin_hp = 0
+        notify: "The goblin gratefully accepts the fish and lets you pass unharmed."
+        goto: end
+
+  end:
+    title: "The End!"
+    text: "You have emerged victorious from the cave adventure, richer and wiser from your experiences."

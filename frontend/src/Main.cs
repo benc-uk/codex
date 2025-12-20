@@ -27,6 +27,8 @@ public partial class WasmEntry
     Console.WriteLine($"Story '{story.Title}' compiled with {story.Sections.Count} sections.");
     var runner = new WebRunner(story);
 
+    runner.Notify($"Welcome to '{story.Title}'!");
+
     // Start the story
     story.Run(runner);
   }

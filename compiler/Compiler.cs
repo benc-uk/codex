@@ -19,7 +19,7 @@ public class Compiler {
         var sectionId = ((YamlScalarNode)keyNode).Value!;
         var section = ParseSection(sectionId, (YamlMappingNode)valueNode);
 
-        await story.AddSectionAsync(section.Result);
+        await story.addSectionAsync(section.Result);
       }
     }
 
@@ -29,13 +29,20 @@ public class Compiler {
       foreach (var (keyNode, valueNode) in varsMap.Children) {
         var varName = ((YamlScalarNode)keyNode).Value!;
         var varValue = ((YamlScalarNode)valueNode).Value!;
-        await Story.RunLua($"{varName} = {varValue}");
+        await Story.runLua($"{varName} = {varValue}");
       }
     }
 
     // title
     if (root.Children.TryGetValue(new YamlScalarNode("title"), out var titleNode)) {
       story.Title = ((YamlScalarNode)titleNode).Value!;
+    }
+
+    // init Lua code
+    if (root.Children.TryGetValue(new YamlScalarNode("init"), out var initNode)) {
+      var initCode = ((YamlScalarNode)initNode).Value!;
+      story.globalLua = initCode;
+      await Story.runLua(initCode);
     }
 
     return story;
@@ -72,22 +79,15 @@ public class Compiler {
       }
     }
 
-    // // vars
-    // if (node.Children.TryGetValue(new YamlScalarNode("vars"), out var varsNode)) {
-    //   var varsMap = (YamlMappingNode)varsNode;
-    //   foreach (var (keyNode, valueNode) in varsMap.Children) {
-    //     var varName = ((YamlScalarNode)keyNode).Value!;
-    //     var varValue = ((YamlScalarNode)valueNode).Value!;
-    //     section.initialVars[varName] = varValue;
-    //   }
-    // }
-
     // run Lua 
     if (node.Children.TryGetValue(new YamlScalarNode("run"), out var runNode)) {
-      var runLua = ((YamlScalarNode)runNode).Value!;
-      section.runLua = runLua;
+      section.runLua = ((YamlScalarNode)runNode).Value!;
     }
 
+    // run once Lua
+    if (node.Children.TryGetValue(new YamlScalarNode("run_once"), out var runOnceNode)) {
+      section.runOnceLua = ((YamlScalarNode)runOnceNode).Value!;
+    }
 
     return section;
   }

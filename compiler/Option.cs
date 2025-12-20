@@ -12,11 +12,11 @@ public class GotoOption : OptionBase {
 
     var targetSection = story.Sections[targetId];
     if (!string.IsNullOrWhiteSpace(runLua)) {
-      _ = Story.RunLua(runLua).Result;
+      _ = Story.runLua(runLua).Result;
     }
 
     if (notifyMessage != null && notifyMessage.Length > 0) {
-      story.runner?.Notify(currentSection.parseText(notifyMessage));
+      story.runner?.Notify(Story.parseText(notifyMessage));
     }
 
     story.runner?.GotoSection(targetSection);
@@ -60,7 +60,7 @@ public abstract class OptionBase : IOption {
       return true;
     }
 
-    var result = Story.RunLua($"return {ifCondition}").Result;
+    var result = Story.runLua($"return {ifCondition}").Result;
     if (result != null && result.Length > 0 && result[0].Type == LuaValueType.Boolean) {
       bool boolResult = result[0].ToBoolean();
       return boolResult;

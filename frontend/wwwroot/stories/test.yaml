@@ -7,6 +7,22 @@ vars:
   luck: 5
   stamina: 20
 
+init: |
+  function battle(name, enemy_skill, enemy_stamina)
+    temp.player_attack = d(6) + d(6) + skill
+    temp.goblin_attack = d(6) + d(6) + enemy_skill
+    msg = "Your attack roll: "..temp.player_attack.."\nThe enemy rolls: "..temp.goblin_attack.."\n\n"
+    if temp.player_attack > temp.goblin_attack then
+      enemy_stamina = math.max(0, enemy_stamina - 2)
+      msg = msg.."You hit the "..name.." for 2 damage!"
+    elseif temp.goblin_attack > temp.player_attack then
+      stamina = stamina - 2
+      msg = msg.."The "..name.." hits you for 2 damage!"
+    else
+      msg = msg.."It's a tie! No damage dealt."
+    end
+  end
+
 sections:
   start:
     title: "The Goblin's Den"
@@ -15,28 +31,33 @@ sections:
       searched: false
     options:
       enter:
-        text: "Fight!"
+        text: "Fight the goblin"
         goto: fight_goblin
 
   fight_goblin:
     title: "Goblin Battle"
-    text: |
-      You are engaged in combat with a ugly goblin.
-      They have {section.goblin_hp} HP left.
-    vars:
-      goblin_hp: 10
-      damage: 0
+    text: "You are engaged in combat with a ugly goblin.\nThey have {section.goblin_hp} HP left."
+    run_once: section.goblin_hp = 7
+    run: temp.goblin_skill = 6
     options:
       victory:
         text: "Collect your reward."
         if: section.goblin_hp <= 0
         goto: goblin_victory
-      continue_fight:
-        text: "Strike!"
+      fight:
+        text: "Hit the enemy!"
         if: section.goblin_hp > 0
-        run: damage = d(6); section.goblin_hp = math.max(section.goblin_hp - damage, 0)
-        notify: "You hit the goblin for {damage} damage!"
+        run: battle("goblin", temp.goblin_skill, section.goblin_hp)
         goto: fight_goblin
+        notify: "{msg}"
+      run_away:
+        text: "Flee!"
+        if: section.visits > 3 and section.goblin_hp > 0
+        notify: "You have fled the battle!"
+        goto: cave_of_shame
 
   goblin_victory:
     text: "You have defeated the goblin and found a treasure chest!"
+
+  cave_of_shame:
+    text: "You fled the battle and retreated to the Cave of Shame. You feel embarrassed."

@@ -66,17 +66,21 @@ nav div:hover {
 
 dialog {
   font-family: "Almendra", serif;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   border: 2px solid var(--main-text-color);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-  width: 20rem;
+  width: 30dvw;
   background-image: linear-gradient(
       rgba(255, 255, 255, 0.3),
       rgba(255, 255, 255, 0.3)
     ),
     url(paper.jpg);
+}
+
+dialog p {
+  margin: 0;
 }
 
 dialog footer {

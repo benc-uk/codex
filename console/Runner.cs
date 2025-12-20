@@ -43,4 +43,8 @@ public class ConsoleRunner : IRunner {
       Console.WriteLine("Invalid choice. Please try again.");
     }
   }
+
+  public void Notify(string message) {
+    Console.WriteLine($"\n[Notification]: {message}\n");
+  }
 }
