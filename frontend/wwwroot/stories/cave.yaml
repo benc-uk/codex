@@ -85,7 +85,7 @@ sections:
 
   left_chamber:
     title: "Glowing Crystal Chamber"
-    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid.\n\nIf you the right tools, you might be able to mine some of the crystals."
+    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid.\n\nIf you had the right tools, you might be able to mine some of the crystals."
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
       take_blue_crystal:
@@ -126,7 +126,7 @@ sections:
 
   goblin_den:
     title: "The Goblin's Den"
-    text: "You are in a filthy cave, bones and scraps of old belongings are scattered about. A goblin blocks your path."
+    text: "You are in a filthy cave, bones and scraps of old belongings are scattered about and the stench of decay fills the air. A scruffy goblin stands before you, eyeing you suspiciously."
     options:
       fight:
         text: "Fight the goblin"
