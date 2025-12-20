@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Lua;
 using Lua.Standard;
 
@@ -32,6 +33,49 @@ public class Story {
         return dice(sides, 1, 0)
       end
 
+      function contains(container, item)
+        for _, v in pairs(container) do
+          if v == item then
+            return true
+          end
+        end
+        return false
+      end
+
+      function insert(container, item)
+        table.insert(container, item)
+      end
+
+      function remove(container, item)
+        for i, v in pairs(container) do
+          if v == item then
+            table.remove(bag, i)
+            break
+          end
+        end
+      end
+
+      function remove_all(container, item)
+        local i = 1
+        while i <= #container do
+          if container[i] == item then
+            table.remove(container, i)
+          else
+            i = i + 1
+          end
+        end
+      end
+
+      function count(container, item)
+        local count = 0
+        for _, v in pairs(container) do
+          if v == item then
+            count = count + 1
+          end
+        end
+        return count
+      end
+
       temp = {}
     """).Result;
 
@@ -49,6 +93,47 @@ public class Story {
     } else {
       throw new InvalidOperationException($"Story does not have a '{startingSectionId}' section.");
     }
+  }
+
+  public Dictionary<string, JsonNode?> GetGlobals() {
+    var globals = new Dictionary<string, JsonNode?>();
+    var luaGlobals = State.Environment;
+
+    foreach (var kvp in luaGlobals) {
+      var ok = kvp.Value.TryRead<string>(out var strVal);
+      if (ok) {
+        globals[kvp.Key.ToString()] = JsonValue.Create(strVal);
+        continue;
+      }
+      ok = kvp.Value.TryRead<double>(out var numVal);
+      if (ok) {
+        globals[kvp.Key.ToString()] = JsonValue.Create(numVal);
+        continue;
+      }
+      ok = kvp.Value.TryRead<bool>(out var boolVal);
+      if (ok) {
+        globals[kvp.Key.ToString()] = JsonValue.Create(boolVal);
+        continue;
+      }
+      ok = kvp.Value.TryRead<LuaTable>(out var tableVal);
+      if (ok) {
+        // Convert LuaTable to JsonArray
+        var jsonArray = new JsonArray();
+        for (var i = 1; i <= tableVal.ArrayLength; i++) {
+          var val = tableVal[i];
+          if (val != LuaValue.Nil) {
+            var itemOk = val.TryRead<string>(out var itemStr);
+            if (itemOk) {
+              jsonArray.Add(JsonValue.Create(itemStr));
+            }
+          }
+        }
+        globals[kvp.Key.ToString()] = jsonArray;
+        continue;
+      }
+    }
+
+    return globals;
   }
 
   internal async Task addSectionAsync(Section section) {

@@ -6,6 +6,7 @@ vars:
   skill: 10
   luck: 5
   stamina: 20
+  bag: "{}"
 
 init: |
   function battle(name, enemy_skill, enemy_stamina)
@@ -28,11 +29,19 @@ sections:
   start:
     title: "The Goblin's Den"
     text: "You are in a dusty cave. A goblin blocks your path."
-    vars:
-      searched: false
+    run: |
+      print(contains(bag, "shield") , count(bag, "shield"))
+      insert(bag, "shield")
+      insert(bag, "shield")
+      insert(bag, "shield")
+      print(contains(bag, "shield"), count(bag, "shield"))
+      remove(bag, "shield")
+      print(contains(bag, "shield"), count(bag, "shield"))
+      remove(bag, "shield")
+      print(contains(bag, "shield"), count(bag, "shield"))
     options:
       enter:
-        text: "Fight the goblin"
+        text: "Engage the goblin"
         goto: fight_goblin
 
   fight_goblin:
@@ -46,7 +55,7 @@ sections:
         if: section.goblin_hp <= 0
         goto: goblin_victory
       fight:
-        text: "Hit the enemy!"
+        text: "Try to hit the goblin"
         if: section.goblin_hp > 0
         run: section.goblin_hp = battle("goblin", temp.goblin_skill, section.goblin_hp)
         goto: fight_goblin

@@ -7,7 +7,4 @@ public static partial class Interop {
 
   [JSImport("notify", "codex")]
   public static partial void Notify(string message);
-
-  [JSImport("globalThis.location.origin.toString", "")]
-  public static partial string GetBaseUrl();
 }

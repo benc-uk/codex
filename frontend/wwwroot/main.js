@@ -1,3 +1,9 @@
+// ================================================================================
+// main.js
+// The main entry point for the Codex WebAssembly application.
+// Sets up the .NET runtime and connects JS imports/exports.
+// ================================================================================
+
 import { dotnet } from "./_framework/dotnet.js";
 import { renderSection, notify } from "./codex.js";
 
@@ -7,6 +13,7 @@ const { setModuleImports, getAssemblyExports, getConfig, runMain } =
     .withApplicationArguments(window.location.href + "stories/cave.yaml")
     .create();
 
+// These will be imported on the dotnet side, see Interop.cs
 setModuleImports("codex", {
   renderSection,
   notify,

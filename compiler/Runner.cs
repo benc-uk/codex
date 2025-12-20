@@ -7,4 +7,6 @@ public interface IRunner {
   void GotoSection(Section section);
 
   void Notify(string message);
+
+  string GetGlobals();
 }

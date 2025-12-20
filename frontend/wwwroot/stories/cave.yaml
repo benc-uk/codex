@@ -7,20 +7,18 @@ vars:
   luck: 5
   stamina: 20
   gold: 0
-  #bag: []
-  have_crystal: false
-  fish: 0
-  pickaxe: false
+  bag: ["rusty dagger", "pebble"]
+  player_name: "Sad Ken The Adventurer"
 
 init: |
   function battle(name, enemy_skill, enemy_stamina)
     temp.player_attack = d(6) + d(6) + skill
-    temp.goblin_attack = d(6) + d(6) + enemy_skill
-    msg = "Your attack roll: "..temp.player_attack.."\nThe enemy rolls: "..temp.goblin_attack.."\n\n"
-    if temp.player_attack > temp.goblin_attack then
+    temp.enemy_attack = d(6) + d(6) + enemy_skill
+    msg = "Your attack roll: "..temp.player_attack.."\nThe enemy rolls: "..temp.enemy_attack.."\n\n"
+    if temp.player_attack > temp.enemy_attack then
       enemy_stamina = math.max(0, enemy_stamina - 2)
       msg = msg.."You hit the "..name.." for 2 damage!"
-    elseif temp.goblin_attack > temp.player_attack then
+    elseif temp.enemy_attack > temp.player_attack then
       stamina = stamina - 2
       msg = msg.."The "..name.." hits you for 2 damage!"
     else
@@ -28,6 +26,8 @@ init: |
     end
     return enemy_stamina
   end
+
+  stamina = d(6) + 12
 
 sections:
   start:
@@ -41,11 +41,12 @@ sections:
       go_out: ["Return to your camp", camp_outside]
 
       search:
-        text: "Search the area"
+        text: "Search the rubble"
         if: not section.searched
         run: |
           section.searched = true
           temp.gold = d(8) + 2;
+          gold = gold + temp.gold
         notify: "You find {temp.gold} gold coins hidden under some rocks near the cave entrance."
         goto: start
 
@@ -62,8 +63,8 @@ sections:
         goto: camp_outside
       pick_up_pickaxe:
         text: "Pick up pickaxe"
-        if: not pickaxe
-        run: pickaxe = true
+        if: not contains(bag, "pickaxe")
+        run: insert(bag, "pickaxe")
         notify: "You pick up the sturdy pickaxe. It might come in handy later."
         goto: camp_outside
 
@@ -73,37 +74,36 @@ sections:
       left_path: ["Take the left path", left_chamber]
       right_path:
         text: "Take the right path"
-        if: not have_crystal
+        if: not contains(bag, "red crystal")
         notify: "It's too dark to go that way without a light source"
         goto: dark_tunnel
       right_path_lit:
         text: "Take the right path"
-        if: have_crystal
+        if: contains(bag, "red crystal")
         goto: right_chamber
       exit: ["Exit the cave", start]
 
   left_chamber:
     title: "Glowing Crystal Chamber"
-    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from.\n\nIf you had a pickaxe, you might be able to mine some of the crystals."
-    run_once: section.blue_crystal = false
+    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid.\n\nIf you the right tools, you might be able to mine some of the crystals."
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
       take_blue_crystal:
-        text: "Mine the blue crystals"
-        if: pickaxe and not section.blue_crystal
-        run: stamina = stamina - 2; section.blue_crystal = true
-        notify: "As you reach for one of the blue crystals, a sudden chill runs through your body, sapping some of your stamina."
+        text: "Mine a blue crystal"
+        if: contains(bag, "pickaxe")
+        run: stamina = stamina - 2;
+        notify: "The blue crystal is icy to the touch, a chill runs through your body.\n\nYou lose 2 stamina."
         goto: left_chamber
       take_green_crystal:
-        text: "Mine the green crystals"
-        if: pickaxe
-        notify: "You pick up one of the green crystals, it looks useless you decide to leave it be."
+        text: "Mine a green crystal"
+        if: contains(bag, "pickaxe")
+        notify: "As you pick at the green crystal, it shatters into worthless fragments that scatter across the cave floor"
         goto: left_chamber
       take_red_crystal:
-        text: "Mine the red crystals"
-        if: not have_crystal and pickaxe
-        run: have_crystal = true
-        notify: "You carefully pick up one of the red glowing crystals. It emits a gentle light, illuminating your surroundings."
+        text: "Mine a red crystal"
+        if: not contains(bag, "red crystal") and contains(bag, "pickaxe")
+        run: insert(bag, "red crystal")
+        notify: "You carefully mine a red crystal from the wall. It emits a warm glow that lights up the surrounding area."
         goto: left_chamber
 
   right_chamber:
@@ -115,9 +115,9 @@ sections:
       fish:
         text: "Try to catch some fish"
         if: section.fish > 0
-        run: stamina = stamina - 2
+        run: stamina = stamina - 1
           section.fish = section.fish - 1
-          fish = fish + 1
+          insert(bag, "fish")
         notify: "You catch a small fish from the pool and feel a bit tired from the effort."
         goto: right_chamber
       go_deeper:
@@ -142,7 +142,7 @@ sections:
       victory:
         text: "Collect your reward."
         if: section.goblin_hp <= 0
-        run: temp.gold = d(10) + 5
+        run: temp.gold = d(10) + d(10) + 5; gold = gold + temp.gold
         notify: "You have defeated the goblin and found {temp.gold} gold coins in filthy pouch"
         goto: end
       fight:
@@ -158,11 +158,11 @@ sections:
         goto: right_chamber
       hand_over_fish:
         text: "Offer fish to the goblin"
-        if: fish > 1 and section.goblin_hp > 0
-        run: fish = 0; section.goblin_hp = 0
-        notify: "The goblin gratefully accepts the fish and lets you pass unharmed."
+        if: count(bag, "fish") > 1 and section.goblin_hp > 0
+        run: remove_all(bag, "fish"); gold = gold + 3
+        notify: "The goblin gratefully accepts the fish and gives you 3 gold coins in return."
         goto: end
 
   end:
     title: "The End!"
-    text: "You have emerged victorious from the cave adventure, richer and wiser from your experiences."
+    text: "You have emerged victorious from the cave adventure, richer and wiser from your experiences.\n\nYou found {gold} gold coins along the way and faced various challenges that tested your skills and courage.\n\nCongratulations on completing your adventure!"

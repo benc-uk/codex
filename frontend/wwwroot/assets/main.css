@@ -114,6 +114,33 @@ dialog button {
   outline: none;
 }
 
+menu {
+  margin-top: 0px;
+  padding: 10px;
+  background-color: var(--paper-color);
+  border-radius: 8px;
+  font-size: 1.2rem;
+  color: var(--paper-color);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  background-image: linear-gradient(
+      rgba(43, 34, 26, 0.6),
+      rgba(43, 34, 26, 0.6)
+    ),
+    url(paper.jpg);
+}
+
+menu li {
+  font-family: "Bona Nova SC", serif;
+  font-weight: 600;
+  margin-bottom: 5px;
+  list-style-type: none;
+}
+
+menu li b {
+  width: 10rem;
+  display: inline-block;
+}
+
 /* mobile styles */
 @media (max-width: 600px) {
   section {

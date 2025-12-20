@@ -1,9 +1,16 @@
 #nullable enable
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.JavaScript;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using Codex;
+
+[JsonSerializable(typeof(Dictionary<string, JsonNode?>))]
+internal partial class WebRunnerJsonContext : JsonSerializerContext { }
 
 public partial class WebRunner : IRunner {
   private static WebRunner? _instance;
@@ -16,9 +23,11 @@ public partial class WebRunner : IRunner {
   }
 
   public void GotoSection(Section section) {
-    // Run any section Lua code
-    section.Start();
     currentSection = section;
+
+    // Calling start on the section to set it up and run any entry code it has
+    section.Start().Wait();
+
     var optionsList = section.GetOptions();
     var optionsIds = optionsList.Keys.ToArray();
     var optionsTexts = optionsList.Values.Select(o => o.Text).ToArray();
@@ -47,5 +56,19 @@ public partial class WebRunner : IRunner {
     option.Execute(_instance.story, _instance.currentSection);
   }
 
+  [JSExport]
+  public static string GetGlobalsWrapper() {
+    if (_instance == null) {
+      throw new InvalidOperationException("WebRunner not initialized.");
+    }
 
+    return _instance.GetGlobals();
+  }
+
+  public string GetGlobals() {
+    var globalDict = story.GetGlobals();
+    var json = JsonSerializer.Serialize(globalDict, WebRunnerJsonContext.Default.DictionaryStringJsonNode);
+    return json;
+  }
 }
+

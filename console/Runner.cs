@@ -18,6 +18,7 @@ public class ConsoleRunner : IRunner {
     int index = 1;
     var optionsList = section.GetOptions().Values.ToList();
     foreach (var option in optionsList) {
+      Console.ForegroundColor = ConsoleColor.Blue;
       Console.WriteLine($"  {index}. {option.Text}");
       index++;
     }
@@ -31,7 +32,9 @@ public class ConsoleRunner : IRunner {
   // get user input
   public int GetUserChoice(int maxChoice) {
     while (true) {
+      Console.ForegroundColor = ConsoleColor.Green;
       Console.Write("\nChoose an option: ");
+      Console.ResetColor();
 
       var input = Console.ReadLine();
       if (int.TryParse(input, out var choice)) {
@@ -46,5 +49,16 @@ public class ConsoleRunner : IRunner {
 
   public void Notify(string message) {
     Console.WriteLine($"\n[Notification]: {message}\n");
+    Console.ForegroundColor = ConsoleColor.DarkYellow;
+    string border = new string('─', 50);
+    Console.WriteLine(border);
+    Console.WriteLine(message);
+    Console.WriteLine(border);
+    Console.ResetColor();
+  }
+
+  public string GetGlobals() {
+    // Console runner doesn't need to serialize globals
+    return "{}";
   }
 }

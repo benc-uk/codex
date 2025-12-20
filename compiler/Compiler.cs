@@ -27,8 +27,32 @@ public class Compiler {
     if (root.Children.TryGetValue(new YamlScalarNode("vars"), out var varsNode)) {
       var varsMap = (YamlMappingNode)varsNode;
       foreach (var (keyNode, valueNode) in varsMap.Children) {
+        // First check if the value is a sequence (array)
         var varName = ((YamlScalarNode)keyNode).Value!;
-        var varValue = ((YamlScalarNode)valueNode).Value!;
+        string varValue;
+        if (valueNode is YamlSequenceNode seqNode) {
+          // Iterate over sequence and build Lua table
+          var elements = new List<string>();
+          foreach (var item in seqNode.Children) {
+            var itemValue = ((YamlScalarNode)item).Value!;
+            // NOTE: We always treat all array items as strings for simplicity
+            elements.Add($"\"{itemValue}\"");
+          }
+          varValue = "{" + string.Join(", ", elements) + "}";
+        } else {
+          // Single scalar value
+          varValue = ((YamlScalarNode)valueNode).Value!;
+          if (double.TryParse(varValue, out var numVal)) {
+            // number, do nothing
+          } else if (varValue == "true" || varValue == "false") {
+            // boolean, do nothing
+          } else {
+            // string, add quotes
+            varValue = $"\"{varValue}\"";
+          }
+        }
+
+
         await Story.runLua($"{varName} = {varValue}");
       }
     }
@@ -38,7 +62,7 @@ public class Compiler {
       story.Title = ((YamlScalarNode)titleNode).Value!;
     }
 
-    // init Lua code
+    // Global Lua code
     if (root.Children.TryGetValue(new YamlScalarNode("init"), out var initNode)) {
       var initCode = ((YamlScalarNode)initNode).Value!;
       story.globalLua = initCode;
