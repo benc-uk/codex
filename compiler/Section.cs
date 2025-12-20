@@ -48,7 +48,7 @@ public class Section {
     visits += 1;
 
     // temp is reset before each section run to avoid leftover state
-    // The section table is a link to the section specific variables
+    // The section table is a link to the section specific variables which persist
     var code = $$"""
       temp = {}
       section = section_{{Id}}

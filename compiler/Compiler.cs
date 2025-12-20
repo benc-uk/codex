@@ -73,9 +73,9 @@ public class Compiler {
   }
 
   private async Task<Section> ParseSection(string id, YamlMappingNode node) {
-    // If id is named "section" that's a problem and reserved word
-    if (id == "section") {
-      throw new CompileException("Section ID cannot be 'section' as it is a reserved word.");
+    // If id is named "restart" that's a problem and reserved word
+    if (id == "restart") {
+      throw new CompileException("Section ID cannot be 'restart' as it is a reserved word.");
     }
 
     var text = "";

@@ -41,6 +41,11 @@ public partial class WebRunner : IRunner {
     Interop.Notify(message);
   }
 
+  public void Restart() {
+    _instance = null;
+    Interop.Restart();
+  }
+
   [JSExport]
   public static void TakeOption(string optionId) {
     if (_instance == null) {

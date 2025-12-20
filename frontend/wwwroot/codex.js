@@ -10,6 +10,19 @@ const optionsList = document.querySelector("nav");
 const dialog = document.querySelector("dialog");
 const menu = document.querySelector("menu");
 
+let menuVisible = true;
+
+menu.addEventListener("click", () => {
+  menuVisible = !menuVisible;
+  if (!menuVisible) {
+    menu.style.height = "1.2rem";
+    menu.style.overflow = "hidden";
+  } else {
+    menu.style.height = "auto";
+    menu.style.overflow = "visible";
+  }
+});
+
 // Renders a story section with title, text, and options.
 // This is imported and called from the WebAssembly module.
 export function renderSection(id, text, title, optionIds, optionTexts) {
@@ -42,6 +55,10 @@ export function renderSection(id, text, title, optionIds, optionTexts) {
 export function notify(message) {
   dialog.querySelector("p").innerText = message;
   dialog.showModal();
+}
+
+export function restart() {
+  window.location.reload();
 }
 
 // Utility function to create a readable title from a section ID.

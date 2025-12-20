@@ -7,4 +7,7 @@ public static partial class Interop {
 
   [JSImport("notify", "codex")]
   public static partial void Notify(string message);
+
+  [JSImport("restart", "codex")]
+  public static partial void Restart();
 }

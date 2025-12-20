@@ -1,4 +1,4 @@
-title: A Test Adventure
+title: The Caverns Of Dubious Uncertainty
 author: Test Author
 version: 1.0
 
@@ -27,8 +27,15 @@ init: |
     return enemy_stamina
   end
 
-  stamina = d(6) + 8
-  skill = d(6) + 6
+  function post_option()
+    if stamina <= 0 then
+      return "dead"
+    end
+    return nil
+  end
+
+  stamina = d(6) + 4
+  skill = d(6)
 
 sections:
   start:
@@ -167,3 +174,11 @@ sections:
   end:
     title: "The End!"
     text: "You have emerged victorious from the cave adventure, richer and wiser from your experiences.\n\nYou found {gold} gold coins along the way and faced various challenges that tested your skills and courage.\n\nCongratulations on completing your adventure!"
+
+  dead:
+    title: "You Have Perished"
+    text: "Your stamina has dropped to zero. You have succumbed to the dangers of the cave.\n\nBetter luck next time!"
+    options:
+      restart:
+        text: "Start a new adventure"
+        goto: restart

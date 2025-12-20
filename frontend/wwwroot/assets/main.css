@@ -37,13 +37,13 @@ section {
 }
 
 main {
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 section hr {
   border: none;
   border-top: 2px solid var(--main-bg-color);
-  margin: 20px 0;
+  margin: 10px 0;
 }
 
 nav div {
@@ -122,6 +122,8 @@ menu {
   font-size: 1.2rem;
   color: var(--paper-color);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  border: 2px solid var(--main-text-color);
   background-image: linear-gradient(
       rgba(43, 34, 26, 0.6),
       rgba(43, 34, 26, 0.6)

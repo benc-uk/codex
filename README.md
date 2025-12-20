@@ -16,7 +16,7 @@ Codex is an interactive fiction engine inspired by classic "Choose Your Own Adve
 ## 🛠️ Technology Stack
 
 - **.NET 10** - Core runtime
-- **WebAssembly (WASM)** - Browser-based execution via Blazor WebAssembly
+- **WebAssembly (WASM)** - Browser-based execution WebAssembly (without Blazor 🤢)
 - **Lua** - Embedded scripting for game logic
 - **YAML** - Story definition format
 
@@ -46,11 +46,13 @@ make install
 ### Running Locally
 
 **Console mode** (for testing):
+
 ```bash
 make run
 ```
 
 **Web mode** (browser):
+
 ```bash
 make run-web
 ```
@@ -92,6 +94,8 @@ sections:
 - **Lua scripting** - Custom logic via `run:` and `if:` blocks
 - **Dice functions** - `d(6)` for a d6 roll, `dice(sides, count, modifier)` for complex rolls
 
+For complete documentation on writing stories, including all available functions, option properties, and variable scopes, see the [Story Development Guide](story-dev.md).
+
 ## 📄 License
 
-This is an experimental project for learning and fun.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

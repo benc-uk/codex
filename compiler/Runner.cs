@@ -8,5 +8,7 @@ public interface IRunner {
 
   void Notify(string message);
 
+  void Restart();
+
   string GetGlobals();
 }

@@ -5,7 +5,7 @@
 // ================================================================================
 
 import { dotnet } from "./_framework/dotnet.js";
-import { renderSection, notify } from "./codex.js";
+import { renderSection, notify, restart } from "./codex.js";
 
 const { setModuleImports, getAssemblyExports, getConfig, runMain } =
   await dotnet
@@ -17,6 +17,7 @@ const { setModuleImports, getAssemblyExports, getConfig, runMain } =
 setModuleImports("codex", {
   renderSection,
   notify,
+  restart,
 });
 
 // Expose WASM exports globally so codex.js can call them

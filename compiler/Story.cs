@@ -8,20 +8,20 @@ namespace Codex;
 public class Story {
   public Dictionary<string, Section> Sections { get; }
   internal IRunner? runner;
-  private readonly static LuaState State = LuaState.Create();
+  private readonly static LuaState state = LuaState.Create();
   public string Title { get; internal set; } = "Untitled Story";
   internal string globalLua = "";
 
   internal Story() {
     Sections = new Dictionary<string, Section>();
-    State.OpenMathLibrary();
-    State.OpenStringLibrary();
-    State.OpenTableLibrary();
-    State.OpenStandardLibraries();
+    state.OpenMathLibrary();
+    state.OpenStringLibrary();
+    state.OpenTableLibrary();
+    state.OpenStandardLibraries();
 
     // Add helper functions
-    _ = State.DoStringAsync("""
-      function dice(sides, count, modifier)
+    _ = state.DoStringAsync("""
+      function dice(count, sides, modifier)
         local total = 0
         for i = 1, count do
           total = total + math.floor(math.random(1, sides+1))
@@ -30,7 +30,7 @@ public class Story {
       end 
 
       function d(sides)
-        return dice(sides, 1, 0)
+        return dice(1, sides, 0)
       end
 
       function contains(container, item)
@@ -79,25 +79,25 @@ public class Story {
       temp = {}
     """).Result;
 
-    State.Environment["notify"] = new LuaFunction(async (context, ct) => {
+    state.Environment["notify"] = new LuaFunction(async (context, ct) => {
       var arg0 = context.GetArgument<string>(0);
       runner?.Notify(parseText(arg0));
       return 0;
     });
   }
 
-  public void Run(IRunner runner, string startingSectionId = "start") {
+  public void Run(IRunner runner) {
     this.runner = runner;
-    if (Sections.TryGetValue(startingSectionId, out var startSection)) {
+    if (Sections.TryGetValue("start", out var startSection)) {
       this.runner.GotoSection(startSection);
     } else {
-      throw new InvalidOperationException($"Story does not have a '{startingSectionId}' section.");
+      throw new InvalidOperationException($"Story does not have a 'start' section.");
     }
   }
 
   public Dictionary<string, JsonNode?> GetGlobals() {
     var globals = new Dictionary<string, JsonNode?>();
-    var luaGlobals = State.Environment;
+    var luaGlobals = state.Environment;
 
     foreach (var kvp in luaGlobals) {
       var ok = kvp.Value.TryRead<string>(out var strVal);
@@ -140,12 +140,12 @@ public class Story {
     Sections[section.Id] = section;
 
     // Create a Lua table for each section to hold its persistent variables
-    await State.DoStringAsync($"section_{section.Id} = {{}}");
+    await state.DoStringAsync($"section_{section.Id} = {{}}");
   }
 
   internal static async Task<LuaValue[]> runLua(string luaCode) {
     try {
-      return await State.DoStringAsync(luaCode);
+      return await state.DoStringAsync(luaCode);
     } catch (Exception ex) {
       throw new CompileException($"Lua Error: {ex.Message}");
     }
