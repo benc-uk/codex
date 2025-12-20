@@ -10,6 +10,7 @@ vars:
   #bag: []
   have_crystal: false
   fish: 0
+  pickaxe: false
 
 init: |
   function battle(name, enemy_skill, enemy_stamina)
@@ -50,7 +51,7 @@ sections:
 
   camp_outside:
     title: "Camp Outside the Cave"
-    text: "You decide to return to your camp. There is a small clearing with a fire pit and some basic supplies.\n\nThe sun is shining, and the birds are chirping. You feel a sense of peace and tranquility in contrast to the dread lurking within the cave."
+    text: "You decide to return to your camp. There is a small clearing with a fire pit and some basic supplies.\n\nThe sun is shining, and the birds are chirping. You feel a sense of peace and tranquility in contrast to the dread lurking within the cave. You see your trusty pickaxe leaning against a tree stump."
     options:
       return: ["Back to cave entrance", start]
       rest:
@@ -58,6 +59,12 @@ sections:
         if: not section.inc_stamina
         run: section.inc_stamina = d(3); stamina = stamina + section.inc_stamina
         notify: "You rest for a while at your camp and regain {section.inc_stamina} stamina."
+        goto: camp_outside
+      pick_up_pickaxe:
+        text: "Pick up pickaxe"
+        if: not pickaxe
+        run: pickaxe = true
+        notify: "You pick up the sturdy pickaxe. It might come in handy later."
         goto: camp_outside
 
   dark_tunnel:
@@ -73,26 +80,28 @@ sections:
         text: "Take the right path"
         if: have_crystal
         goto: right_chamber
+      exit: ["Exit the cave", start]
 
   left_chamber:
     title: "Glowing Crystal Chamber"
-    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from."
+    text: "This area is filled with a soft, glowing light emanating from several crystals embedded in the walls. The crystals pulse gently, casting eerie shadows on the cave floor. The air here feels warmer and more humid compared to the dark tunnel you came from.\n\nIf you had a pickaxe, you might be able to mine some of the crystals."
+    run_once: section.blue_crystal = false
     options:
       return: ["Return to the dark tunnel", dark_tunnel]
       take_blue_crystal:
-        text: "Take one of the blue glowing crystals"
-        if: not have_crystal
-        run: stamina = stamina - 2
+        text: "Mine the blue crystals"
+        if: pickaxe and not section.blue_crystal
+        run: stamina = stamina - 2; section.blue_crystal = true
         notify: "As you reach for one of the blue crystals, a sudden chill runs through your body, sapping some of your stamina."
         goto: left_chamber
       take_green_crystal:
-        text: "Take one of the green glowing crystals"
-        if: not have_crystal
+        text: "Mine the green crystals"
+        if: pickaxe
         notify: "You pick up one of the green crystals, it looks useless you decide to leave it be."
         goto: left_chamber
       take_red_crystal:
-        text: "Take one of the red glowing crystals"
-        if: not have_crystal
+        text: "Mine the red crystals"
+        if: not have_crystal and pickaxe
         run: have_crystal = true
         notify: "You carefully pick up one of the red glowing crystals. It emits a gentle light, illuminating your surroundings."
         goto: left_chamber
