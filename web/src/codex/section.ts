@@ -29,15 +29,15 @@ export class Section {
     return this._visits
   }
 
+  public get text(): string {
+    return Story.replaceVars(this._text)
+  }
+
   private constructor(id: string, title: string, content: string) {
     this.id = id
     this._title = title
     this._text = content
     this._options = new Map<string, Option>()
-  }
-
-  public get text(): string {
-    return Story.replaceVars(this._text)
   }
 
   static parse(id: string, data: any): Section {

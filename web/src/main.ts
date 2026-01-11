@@ -2,9 +2,10 @@ import './style.css'
 
 import Alpine from 'alpinejs'
 import { Story } from './codex/story'
+import { newlineToBr, niceify } from './utils/strings'
 import type { Option } from './codex/option'
 
-let story: Story = null!
+let story: Story
 
 Alpine.data('appState', () => ({
   title: '',
@@ -24,6 +25,7 @@ Alpine.data('appState', () => ({
 
   async init() {
     story = await Story.parse('stories/cave.yaml')
+
     this.title = story.title
     document.title = this.title
     console.log('Loaded story:', story.title)
@@ -101,21 +103,7 @@ Alpine.data('appState', () => ({
     }
   },
 
-  niceify(id: string): string {
-    return niceify(id)
-  },
+  niceify: niceify,
 }))
-
-function newlineToBr(text: string): string {
-  return text.replace(/\n/g, '<br/>')
-}
-
-// Utility function to create a readable title from a section ID.
-function niceify(id: string): string {
-  return id
-    .split('_')
-    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(' ')
-}
 
 Alpine.start()

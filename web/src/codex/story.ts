@@ -8,16 +8,24 @@ export const LuaVM = await initLua()
 export class Story {
   private sections: Map<string, Section>
   public readonly title: string
+  public readonly events: Set<string>
 
-  constructor(title: string) {
+  private constructor(title: string) {
     this.title = title
     this.sections = new Map<string, Section>()
+    this.events = new Set<string>()
   }
 
+  // =================================================================================
+  // Get a section by its ID
+  // =================================================================================
   getSection(id: string): Section | undefined {
     return this.sections.get(id)
   }
 
+  // =================================================================================
+  // Get all global variables from the Lua VM, excluding internal and standard libs
+  // =================================================================================
   getGlobals(): Record<string, any> {
     const globals: Record<string, any> = {}
     const luaGlobals = LuaVM.GetAllGlobals()
@@ -45,17 +53,21 @@ export class Story {
     return globals
   }
 
+  // =================================================================================
+  // Trigger an event by its ID, passing any arguments to the Lua handler
+  // =================================================================================
   trigger(eventId: string, ...args: any[]): string {
-    // Check if event function exists
-    const eventFunc = LuaVM.GetGlobal(`event_${eventId}`)
-    if (typeof eventFunc !== 'function') {
-      console.warn('No event handler for:', eventId)
-      return 'Event trigger failed: handler not found.'
+    if (!this.events.has(eventId)) {
+      console.warn(`Event trigger failed: no handler for ${eventId} found in story`)
+      return `Unable to trigger event: ${eventId}`
     }
 
     return LuaVM.CallFunction(`event_${eventId}`, ...args)
   }
 
+  // =================================================================================
+  // Parse a story from a YAML file at the given URL
+  // =================================================================================
   static async parse(url: string): Promise<Story> {
     if (Object.keys(LuaVM).length === 0) {
       console.error('Lua VM not initialized')
@@ -68,6 +80,9 @@ export class Story {
 
     const data = parse(text, { merge: true }) as any
 
+    const story = new Story(data.title || 'Untitled Story')
+
+    // Parse global variables
     if (data.vars) {
       const varsCode = Object.entries(data.vars)
         .map(([key, value]) => {
@@ -83,6 +98,7 @@ export class Story {
       LuaVM.DoString(varsCode)
     }
 
+    // Initialize helper functions in Lua VM
     const luaInit = `
       function dice(count, sides, modifier)
         local total = 0
@@ -145,7 +161,7 @@ export class Story {
     `
     LuaVM.DoString(luaInit)
 
-    // Parse init
+    // Parse story init code
     const initCode = data.init as string
     LuaVM.DoString(initCode)
 
@@ -160,6 +176,20 @@ export class Story {
                             ${runCode}
                           end`
         LuaVM.DoString(funcCode)
+        story.events.add(eventId)
+      }
+    }
+
+    // Parse hooks
+    if (data.hooks) {
+      for (const hookId in data.hooks) {
+        const hookData = data.hooks[hookId]
+        const runCode = hookData.run || ''
+
+        const funcCode = `function hook_${hookId}()
+                            ${runCode}
+                          end`
+        LuaVM.DoString(funcCode)
       }
     }
 
@@ -170,12 +200,13 @@ export class Story {
       sections.set(section.id, section)
     }
 
-    const story = new Story(data.title || 'Untitled Story')
     story.sections = sections
     return story
   }
 
-  // Replace {varname} placeholders in text with section/story data
+  // =================================================================================
+  // Replace variables in the given text using Lua evaluation
+  // =================================================================================
   static replaceVars(text: string): string {
     return text.replace(/{(.*?)}/g, (_, expr) => {
       try {

@@ -98,7 +98,7 @@ export class Option {
       }
     }
 
-    LuaVM.DoString(`if type(post_option) == "function" then post_option() end`)
+    LuaVM.DoString(`if type(hook_post_option) == "function" then hook_post_option() end`)
 
     if (this.flags.has('once')) {
       this.hidden = true

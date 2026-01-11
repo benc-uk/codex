@@ -21,22 +21,12 @@ events:
         return "You drink the healing potion and recover 4 stamina."
       end
       return "You can't use that item right now."
+
 hooks:
   post_option:
     run: if stamina <= 0 then goto_section = "dead" end
 
 init: |
-  msg = ""
-  function zzzzzzzzzzevent_use_item(item_id)
-    if item_id == "healing_potion" then
-      stamina = math.min(20, stamina + 4)
-      remove(consumables, "healing_potion")
-      return "You drink the healing potion and recover 4 stamina."
-    else
-      return "You can't use that item right now."
-    end
-  end
-
   function battle(name, enemy_skill, enemy_stamina)
     local player_attack = d(6) + d(6) + skill
     local enemy_attack = d(6) + d(6) + enemy_skill
@@ -58,12 +48,6 @@ init: |
     local was_lucky = luck_roll < luck
     luck = math.max(0, luck - 1)
     return was_lucky
-  end
-
-  function post_option()
-    if stamina <= 0 then
-      goto_section = "dead"
-    end
   end
 
   stamina = d(6) + d(6) + 8
@@ -168,7 +152,7 @@ sections:
         text: 'Mine a blue crystal'
         if: contains(equip, "pickaxe")
         flags: [once]
-        run: stamina = stamina - 33332;
+        run: stamina = stamina - 2;
         notify: "The blue crystal is icy to the touch, a chill runs through your body.\n\nYou lose 2 stamina."
       take_green_crystal:
         text: 'Mine a green crystal'
