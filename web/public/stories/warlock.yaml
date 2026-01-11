@@ -33,7 +33,7 @@ init: |
     end
 
     if enemy_stamina <= 0 then
-      fight_msg = "\nThe "..name.." is defeated!"
+      fight_msg = fight_msg.."\nThe "..name.." is defeated!"
     end
 
     return enemy_stamina
