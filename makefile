@@ -3,7 +3,6 @@ DEV_DIR := $(ROOT_DIR)/.dev
 PACKAGE := github.com/benc-uk/codex
 VERSION := $(shell git describe --tags --abbrev=0 --dirty=-dev 2>/dev/null || echo "0.0.0-dev")
 
-
 build-lua:
 	GOOS=js GOARCH=wasm go build -o web/public/lua.wasm golua/main.go
 
@@ -24,4 +23,7 @@ lint: # ✨ Check code formatting
 	[ $$count -eq 0 ] || exit 1
 	@cd web && npm run lint && npm run format:check
 
-	
+build-web:
+	cd web && npm run build
+
+build: build-lua build-web
