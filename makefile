@@ -15,7 +15,6 @@ clean:
 install:
 	cd web && npm install
 	go mod download
-	go mod download -modfile=$(DEV_DIR)/tools.mod
 
 lint: # ✨ Check code formatting
 	@count=$$(gofmt -l . | wc -l); \
