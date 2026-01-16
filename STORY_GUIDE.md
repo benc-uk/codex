@@ -46,6 +46,7 @@ Stories are YAML files placed in `web/public/stories/`. The filename (without `.
 
 ```yaml
 title: Your Story Title
+system: fighting-fantasy
 author: Your Name
 version: 1.0
 
@@ -68,9 +69,33 @@ sections:
 
 ```yaml
 title: The Lost Kingdom # Story title (shown in browser)
+system: fighting-fantasy # UI system/theme for rendering (required)
 author: Jane Doe # Author name
 version: 1.0 # Version number
 ```
+
+### System Field
+
+The `system` field is a **required** top-level field that specifies which UI system/theme is used to render the story. Each system provides its own HTML template and CSS styling appropriate for different genres.
+
+Systems are located in `web/sys/`, where each subdirectory contains the HTML and CSS for that system. You can create custom systems by adding a new folder with your own `index.html` and `style.css`.
+
+**Built-in systems**:
+
+| System             | Description                                          |
+| ------------------ | ---------------------------------------------------- |
+| `fighting-fantasy` | Classic gamebook style with skill/stamina/luck stats |
+| `sci-fi`           | Science fiction themed interface                     |
+
+**Example**:
+
+```yaml
+title: Space Station Adventure
+system: sci-fi
+author: Your Name
+```
+
+The system determines the visual presentation and may include genre-specific UI elements for displaying stats, inventory, and other game state.
 
 ### Global Variables (`vars`)
 

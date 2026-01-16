@@ -294,7 +294,7 @@ sections:
   survivor_rescue:
     title: 'Cryo-Pod Discovery'
     text: |
-      Inside the medical bay's emergency cryo-pod, you find an unconscious crew member - Dr. Sarah Chen, the station's chief scientist. She's alive but injured.
+      Inside the medical bay's emergency cryo-pod, you find an unconscious crew member - Dr. Sarah Chen, the station's chief scientist. She's alive but injured. Her vitals are weak, and she needs immediate medical attention, you also notice a BLUE SECURITY KEYCARD hanging from a lanyard around her neck.
     options:
       revive:
         text: 'Revive Dr. Chen with a medkit'
@@ -320,7 +320,7 @@ sections:
   crew_quarters:
     title: 'Crew Quarters'
     text: |
-      The crew quarters section is damaged. Several doors are sealed shut, but a few rooms are accessible. You hear a banging sound from one of the rooms.
+      The crew quarters section is damaged. Several doors are sealed shut, but a few rooms are accessible. You hear a metallic banging sound from one of the rooms.
     run: oxygen = oxygen - 2
     options:
       back: ['Return to corridor', main_corridor]
@@ -352,7 +352,7 @@ sections:
         if: s.stamina <= 0
         run: |
           insert(keycards, "red")
-        notify: 'The drone sparks and shuts down. You find a RED SECURITY KEYCARD in its memory bank!'
+        notify: 'The drone sparks and shuts down. You find a RED SECURITY KEYCARD inside its chassis.'
         goto: crew_quarters
 
   hostile_encounter_2:
@@ -449,7 +449,7 @@ sections:
     text: |
       The reactor room is a nightmare. The containment field flickers unstably around the fusion core. Radiation alarms wail, and your emergency kit's dosimeter clicks ominously.
 
-      {not s.mutant_defeated and "A horrifically mutated technician lurks near the control console, their body fused with cables and machinery. They turn toward you with glowing eyes!" or "A control console near the door appears operational."}
+      A control console near the door appears operational.
     run: |
       oxygen = oxygen - 5
       if not reactor_stable then
@@ -458,15 +458,10 @@ sections:
     options:
       back:
         text: 'Exit quickly'
-        if: s.mutant_defeated or s.mutant_defeated == nil
         goto: engineering_deck
-      fight_mutant:
-        text: 'Fight the reactor mutant'
-        if: not s.mutant_defeated
-        goto: reactor_mutant
       stabilize:
         text: 'Attempt to stabilize the reactor'
-        if: not reactor_stable and s.mutant_defeated
+        if: not reactor_stable
         flags: [once]
         run: |
           local roll = d(6) + d(6) + skill
@@ -479,26 +474,6 @@ sections:
             temp.msg = "You fail! The controls overload, shocking you. Lose 4 stamina."
           end
         notify: '{temp.msg}'
-        goto: reactor_room
-
-  reactor_mutant:
-    title: 'Combat: Reactor Technician Mutant'
-    text: |
-      The creature that was once a reactor technician has become something far worse than the other mutants. Exposed to concentrated radiation from the core breach, their body has fused with the reactor's control cables. Sparks of electricity arc across their metallic skin as they lunge at you!
-
-      REACTOR MUTANT ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
-
-      {fight_msg}
-    vars: { stamina: 11, skill: 8, name: 'reactor mutant', luck_used: false }
-    options:
-      <<: *combat
-      victory:
-        text: 'Access the controls'
-        if: s.stamina <= 0
-        run: |
-          s.mutant_defeated = true
-          insert(items, "oxygen_canister")
-        notify: 'The reactor mutant collapses, finally at peace. You find an OXYGEN CANISTER near the body. The control console is now accessible.'
         goto: reactor_room
 
   hostile_encounter_3:
@@ -589,17 +564,46 @@ sections:
     text: |
       The observation deck provides a panoramic view of the disaster. Large sections of the station's outer hull are missing, venting atmosphere into space. Neptune looms in the background, beautiful and indifferent.
 
-      Through the viewport, you can see the docking bay on Deck 1 - your only hope of escape.
+      {not s.tentacles_defeated and "A writhing mass of fleshy tentacles hangs from a breach in the ceiling, pulsing with bioluminescent veins. They sense your presence and begin reaching toward you!" or "Through the viewport, you can see the docking bay on Deck 1 - your only hope of escape."}
     run: oxygen = oxygen - 2
     options:
-      back: ['Return to Engineering', engineering_deck]
+      back:
+        text: 'Return to Engineering'
+        if: s.tentacles_defeated or s.tentacles_defeated == nil
+        goto: engineering_deck
+      fight_tentacles:
+        text: 'Fight the tentacles'
+        if: not s.tentacles_defeated
+        goto: observation_tentacles
       assess:
         text: 'Assess the damage'
+        if: s.tentacles_defeated
         flags: [once]
         notify: 'The station is breaking apart. You estimate you have limited time before complete structural failure. You need to reach the docking bay on Deck 1!'
       to_computer_core:
         text: 'Take emergency shaft to Computer Core (Deck 1)'
+        if: s.tentacles_defeated
         goto: computer_core
+
+  observation_tentacles:
+    title: 'Combat: Alien Tentacle Mass'
+    text: |
+      The writhing mass of tentacles drops from the ceiling breach, blocking your path. Each appendage is covered in suction cups lined with tiny razor-sharp teeth. The creature's core pulses with an eerie blue glow as it lashes out at you with terrifying speed!
+
+      TENTACLE MASS ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
+
+      {fight_msg}
+    vars: { stamina: 11, skill: 8, name: 'tentacle mass', luck_used: false }
+    options:
+      <<: *combat
+      victory:
+        text: 'Look around'
+        if: s.stamina <= 0
+        run: |
+          s.tentacles_defeated = true
+          insert(items, "oxygen_canister")
+        notify: 'The tentacle mass shudders and goes limp, its bioluminescence fading. You find an OXYGEN CANISTER that must have been caught in its grip.'
+        goto: observation_deck
 
   computer_core:
     title: 'Computer Core - Deck 1'

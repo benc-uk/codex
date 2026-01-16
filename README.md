@@ -10,10 +10,12 @@ Codex is a web-based interactive fiction engine inspired by classic gamebooks (l
 
 - **Lua-Powered Logic**: Complex game mechanics using embedded Lua scripts
 - **YAML Story Format**: Simple, human-readable story definitions
+- **Systems Architecture**: Themed UI systems (e.g., Fighting Fantasy, Sci-Fi) with custom styling and character sheets
+- **Decoupled Stories**: Stories are independent YAML files that run on any compatible system
 - **WebAssembly Integration**: Go-based Lua VM compiled to WASM for browser execution
 - **Reactive UI**: Built with Alpine.js for a smooth, interactive experience
 - **Persistent State**: Automatic save/load of game progress via localStorage
-- **Character Sheet**: Track stats, inventory, and consumables
+- **Character Sheet**: System-specific stats, inventory, and item tracking
 - **Conditional Options**: Dynamic choice visibility based on game state
 - **Combat System**: Built-in support for dice-rolling and turn-based combat
 - **Event System**: Trigger custom handlers for items and actions
@@ -37,35 +39,61 @@ Codex is a web-based interactive fiction engine inspired by classic gamebooks (l
 
 ### Architecture Overview
 
+```mermaid
+flowchart TD
+    Library["Game Library/Loader<br/>(index.html)"]
+    Library --> |"&nbsp; loads YAML, redirects &nbsp; "| SystemUI
+
+    subgraph SystemUI["System UI (sys/{system}/)"]
+        HTML["index.html + style.css"]
+        Alpine["Alpine.js App<br/>(codex.ts)"]
+        HTML --> Alpine
+    end
+
+    subgraph Engine["Story Engine"]
+        Story["story.ts"]
+        Section["section.ts"]
+        Option["option.ts"]
+    end
+
+    subgraph LuaBridge["Lua Bridge (lua.ts)"]
+        DoString["DoString()"]
+        GetSet["Get/SetGlobal()"]
+        Call["CallFunction()"]
+    end
+
+    subgraph WASM["WASM Module (lua.wasm)"]
+        GopherLua["GopherLua VM"]
+        JSBridge["JS Bridge Functions"]
+    end
+
+    Alpine --> Engine
+    Engine --> LuaBridge
+    LuaBridge --> WASM
 ```
-┌─────────────────────────────────────────────────┐
-│          Browser (index.html)                   │
-│  ┌────────────────────────────────────────┐    │
-│  │  Alpine.js App (webapp.ts)             │    │
-│  │  ┌──────────────────────────────────┐  │    │
-│  │  │  Story Engine (story.ts)         │  │    │
-│  │  │  - Section Management            │  │    │
-│  │  │  - Option Evaluation             │  │    │
-│  │  │  - Event System                  │  │    │
-│  │  └──────────┬───────────────────────┘  │    │
-│  │             │                            │    │
-│  │             ↓                            │    │
-│  │  ┌──────────────────────────────────┐  │    │
-│  │  │  Lua Bridge (lua.ts)             │  │    │
-│  │  │  - DoString()                    │  │    │
-│  │  │  - GetGlobal() / SetGlobal()    │  │    │
-│  │  │  - CallFunction()                │  │    │
-│  │  └──────────┬───────────────────────┘  │    │
-│  └─────────────┼──────────────────────────┘    │
-│                ↓                                 │
-│  ┌───────────────────────────────────────────┐ │
-│  │  WASM Module (lua.wasm)                   │ │
-│  │  - GopherLua VM (golua/main.go)          │ │
-│  │  - JavaScript Bridge Functions            │ │
-│  │  - Type Conversion (Lua ↔ JS)            │ │
-│  └───────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────┘
-```
+
+### Systems
+
+Systems are themed frontends that provide the UI layer for running stories. Each system defines:
+
+- **Custom HTML template**: Layout and structure for the story interface
+- **Custom CSS styling**: Fonts, colors, and visual theme
+- **Character sheet fields**: System-specific stats and inventory display
+
+Stories specify which system they run on via the `system` field in the YAML header. This decouples story content from presentation, allowing:
+
+- Multiple stories to share the same system/theme
+- Custom stories to be created without modifying the frontend
+- Different UI experiences for different genres (fantasy, sci-fi, etc.)
+
+**Built-in Systems:**
+
+| System             | Description                                        | Character Sheet                                          |
+| ------------------ | -------------------------------------------------- | -------------------------------------------------------- |
+| `fighting-fantasy` | Classic gamebook style with medieval fantasy theme | Stamina, Skill, Luck, Gold, Equipment, Consumables       |
+| `sci-fi`           | Futuristic space theme                             | Stamina, Skill, Luck, Oxygen, Keycards, Equipment, Items |
+
+Systems are located in [web/sys/](web/sys/), with each system having its own `index.html` and `style.css`.
 
 ### Core Components
 
@@ -87,11 +115,11 @@ Codex is a web-based interactive fiction engine inspired by classic gamebooks (l
 - Exposes bridge functions via global `lua` object
 - Handles type conversion between Lua and JavaScript
 
-#### 4. **Web Application** ([web/src/webapp.ts](web/src/webapp.ts))
+#### 4. **Web Application** ([web/src/codex.ts](web/src/codex.ts))
 
 - Alpine.js reactive state management
 - Section navigation and option handling
-- Character sheet with inventory
+- System-specific character sheet display
 - Save/load system via localStorage
 - Notification and confirmation dialogs
 
@@ -169,14 +197,25 @@ make clean        # Remove built files and node_modules
 make lint         # Run linters and format checks
 ```
 
-### Loading Different Stories
+### Loading Stories
 
-Stories are in [web/public/stories/](web/public/stories/). To load a different story:
+The root URL (`http://localhost:5173/`) displays a **Game Library** - a visual bookshelf interface showing available stories organized by genre. Click a book to play that story.
 
-- Navigate to `http://localhost:5173/{story-name}` (without the `.yaml` extension)
-- Examples:
-  - `http://localhost:5173/cave`
-  - `http://localhost:5173/warlock`
+**How story loading works:**
+
+1. When a story is selected, the loader fetches and parses the YAML to determine its `system`
+2. The browser redirects to `/sys/{system}/?story={story-url}`
+3. The system's themed UI loads and runs the story
+
+**Built-in stories** are in [web/public/story/](web/public/story/) and appear in the library automatically.
+
+**Custom stories** can be loaded from any accessible URL:
+
+- Navigate to `http://localhost:5173/?storyUrl={url-to-yaml-file}`
+- The story YAML must specify a valid `system` in its header
+- Example: `http://localhost:5173/?storyUrl=https://example.com/my-story.yaml`
+
+This allows story authors to host their own content separately from the Codex engine, while still using the themed UI systems.
 
 ## Developer Guide
 
@@ -217,11 +256,12 @@ This section is for developers who want to contribute to or modify the Codex eng
 
 **TypeScript (Frontend)**:
 
-- [web/src/webapp.ts](web/src/webapp.ts): Alpine.js app state and UI logic
+- [web/src/codex.ts](web/src/codex.ts): Main entry point, Alpine.js app state and UI logic
 - [web/src/codex/story.ts](web/src/codex/story.ts): Core story engine, YAML parsing, Lua integration
 - [web/src/codex/section.ts](web/src/codex/section.ts): Section lifecycle and state management
 - [web/src/codex/option.ts](web/src/codex/option.ts): Option conditions, execution, and navigation
 - [web/src/lua/lua.ts](web/src/lua/lua.ts): TypeScript interface to WASM Lua VM
+- [web/sys/](web/sys/): System UI templates and stylesheets
 
 **Go (WASM Bridge)**:
 
@@ -449,9 +489,20 @@ The guide covers:
 
 ### Quick Start for Story Authors
 
-1. Create a YAML file in `web/public/stories/`
-2. Define story metadata, variables, and sections
-3. Test at `http://localhost:5173/your-story-name`
+1. Create a YAML file with the required header including `title` and `system`
+2. Choose a system that matches your story's genre (e.g., `fighting-fantasy`, `sci-fi`)
+3. Define variables, events, and sections
+4. Host your story file anywhere accessible via URL
+5. Load it via `http://localhost:5173/?story=your-story-url`
+
+Example story header:
+
+```yaml
+title: My Adventure
+system: fighting-fantasy
+author: Your Name
+version: 1.0
+```
 
 See [STORY_GUIDE.md](STORY_GUIDE.md) for the full guide.
 
@@ -463,9 +514,9 @@ codex/
 │   └── main.go              # Go/WASM Lua bridge
 ├── web/
 │   ├── public/
-│   │   ├── stories/         # Story YAML files
-│   │   │   ├── main.yaml
+│   │   ├── story/           # Built-in story YAML files
 │   │   │   ├── cave.yaml
+│   │   │   ├── station-omega.yaml
 │   │   │   └── warlock.yaml
 │   │   └── lua.wasm         # Built WASM module (generated)
 │   ├── src/
@@ -479,9 +530,14 @@ codex/
 │   │   │   └── wasm-exec.mjs
 │   │   ├── utils/           # Utilities
 │   │   │   └── strings.ts
-│   │   ├── webapp.ts        # Main app entry
-│   │   └── style.css
-│   ├── index.html
+│   │   └── codex.ts         # Main engine entry point
+│   ├── sys/                 # UI Systems (themes)
+│   │   ├── fighting-fantasy/
+│   │   │   ├── index.html   # Fantasy-themed UI template
+│   │   │   └── style.css    # Medieval styling & fonts
+│   │   └── sci-fi/
+│   │       ├── index.html   # Sci-fi themed UI template
+│   │       └── style.css    # Futuristic styling & fonts
 │   ├── package.json
 │   └── tsconfig.json
 ├── go.mod
@@ -531,6 +587,8 @@ Potential improvements:
 
 - Visual story editor
 - Save file export/import
+- Additional built-in systems/themes
+- System creation documentation
 - Multiplayer/shared game states
 - Audio/music support
 - Enhanced combat system with graphics
@@ -541,10 +599,6 @@ Potential improvements:
 
 Copyright (C) 2025 Ben Coleman  
 Licensed under the MIT License
-
-### Contributing
-
-This project is currently in active development. Issues and pull requests welcome!
 
 ### Contact
 
