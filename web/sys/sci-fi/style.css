@@ -1,0 +1,368 @@
+:root {
+  --main-bg-color: #050508;
+  --main-text-color: #e0f0ff;
+  --panel-color: rgba(10, 20, 35, 0.95);
+  --choice-color: rgba(0, 40, 80, 0.8);
+  --choice-color-hover: rgba(0, 60, 120, 0.9);
+  --accent-color: #00d4ff;
+  --accent-secondary: #ff00aa;
+  --glow-color: rgba(0, 212, 255, 0.5);
+  --glow-secondary: rgba(255, 0, 170, 0.3);
+  --border-color: #00d4ff;
+  --green: #00ff88;
+  --warning: #ffaa00;
+}
+
+/* Scanline overlay effect */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0px, rgba(0, 0, 0, 0.1) 1px, transparent 1px, transparent 3px);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Animated background grid */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: -1;
+}
+
+body {
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(ellipse at 80% 20%, rgba(255, 0, 170, 0.08) 0%, transparent 50%),
+    var(--main-bg-color);
+  color: var(--main-text-color);
+  font-family: 'Quantico', monospace;
+  margin: 0;
+  padding: 20px;
+  min-height: 100vh;
+}
+
+header {
+  font-family: 'Electrolize', sans-serif;
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0;
+  padding: 0;
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  color: var(--accent-color);
+  text-shadow:
+    0 0 10px var(--glow-color),
+    0 0 20px var(--glow-color),
+    0 0 40px var(--glow-color);
+}
+
+section {
+  font-family: 'Quantico', sans-serif;
+  font-size: 1.4rem;
+  line-height: 1.6;
+  background: var(--panel-color);
+  color: var(--main-text-color);
+  padding: 25px;
+  margin-bottom: 5rem;
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-color);
+  border-right: 3px solid var(--accent-secondary);
+  position: relative;
+  box-shadow:
+    0 0 30px var(--glow-color),
+    0 0 60px rgba(0, 212, 255, 0.2),
+    inset 0 0 30px rgba(0, 212, 255, 0.05);
+  clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+/* Corner decorations */
+section::before,
+section::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent-color);
+}
+
+section::before {
+  top: 5px;
+  left: 5px;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: 0 0 10px var(--glow-color);
+}
+
+section::after {
+  bottom: 5px;
+  right: 5px;
+  border-left: none;
+  border-top: none;
+  box-shadow: 0 0 10px var(--glow-color);
+}
+
+main {
+  margin-bottom: 0px;
+}
+
+section hr {
+  border: none;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), var(--accent-secondary), transparent);
+  margin: 15px 0;
+  box-shadow: 0 0 10px var(--glow-color);
+}
+
+nav div {
+  font-family: 'Electrolize', sans-serif;
+  font-weight: 400;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  background: var(--choice-color);
+  padding: 15px 20px;
+  user-select: none;
+  cursor: pointer;
+  border: 1px solid var(--accent-color);
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    0 0 15px var(--glow-color),
+    inset 0 0 20px rgba(0, 212, 255, 0.1);
+  clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+  transition: all 0.3s ease;
+}
+
+/* Animated border effect on options */
+nav div::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--accent-color), transparent);
+  transition: left 0.5s ease;
+}
+
+nav div:hover::before {
+  left: 100%;
+}
+
+nav div::after {
+  content: '▶';
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0;
+  color: var(--accent-color);
+  transition: all 0.3s ease;
+  text-shadow: 0 0 10px var(--glow-color);
+}
+
+nav div:hover::after {
+  opacity: 1;
+  right: 20px;
+}
+
+nav div:hover {
+  background: var(--choice-color-hover);
+  cursor: pointer;
+  transform: translateX(10px);
+  border-color: var(--accent-secondary);
+  box-shadow:
+    0 0 30px var(--glow-color),
+    0 0 50px rgba(255, 0, 170, 0.3),
+    inset 0 0 25px rgba(0, 212, 255, 0.15);
+}
+
+dialog {
+  font-family: 'Quantico', sans-serif;
+  font-size: 1.4rem;
+  border: 2px solid var(--accent-color);
+  padding: 25px;
+  background: var(--panel-color);
+  color: var(--main-text-color);
+  width: 30dvw;
+  box-shadow:
+    0 0 50px var(--glow-color),
+    0 0 100px rgba(0, 212, 255, 0.3),
+    inset 0 0 30px rgba(0, 212, 255, 0.1);
+  clip-path: polygon(0 15px, 15px 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px));
+  animation: dialogOpen 0.3s ease-out;
+}
+
+@keyframes dialogOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+    filter: blur(5px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0);
+  }
+}
+
+dialog p {
+  margin: 0;
+}
+
+dialog div {
+  text-align: center;
+  margin-top: 20px;
+}
+
+dialog button {
+  font-family: 'Electrolize', sans-serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  background: var(--choice-color);
+  color: var(--main-text-color);
+  border: 1px solid var(--accent-color);
+  padding: 10px 25px;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  box-shadow: 0 0 15px var(--glow-color);
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  transition: all 0.3s ease;
+}
+
+dialog button:hover {
+  background: var(--choice-color-hover);
+  box-shadow:
+    0 0 25px var(--glow-color),
+    0 0 40px rgba(255, 0, 170, 0.3);
+  border-color: var(--accent-secondary);
+}
+
+::backdrop {
+  background: rgba(0, 10, 20, 0.8);
+  backdrop-filter: blur(8px);
+}
+
+footer {
+  font-family: 'Electrolize', sans-serif;
+  padding: 15px;
+  padding-top: 10px;
+  background: var(--panel-color);
+  font-size: 1.1rem;
+  color: var(--main-text-color);
+  position: fixed;
+  bottom: 0;
+  width: 60dvw;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  user-select: none;
+  border: none;
+  box-shadow:
+    0 0 20px var(--glow-secondary),
+    0 0 40px var(--glow-secondary),
+    0 0 60px rgba(255, 0, 170, 0.2);
+  transition: transform 0.3s ease-out;
+}
+
+footer.sheet-collapsed {
+  transform: translateY(calc(100% - 2.5rem));
+}
+
+footer .row {
+  cursor: pointer;
+  height: 2.5rem;
+  user-select: none;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+footer table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+footer table td {
+  padding: 3px 0;
+}
+
+footer table td:first-child {
+  font-weight: bold;
+  width: 1rem;
+  padding-right: 1rem;
+  color: var(--accent-color);
+  text-transform: uppercase;
+}
+
+.consumable {
+  color: var(--green);
+  text-shadow: 0 0 8px var(--green);
+}
+
+.consumable:hover {
+  font-weight: 600;
+  cursor: pointer;
+  text-shadow: 0 0 15px var(--green);
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.row strong {
+  flex-grow: 1;
+  color: var(--accent-color);
+  text-shadow: 0 0 10px var(--glow-color);
+}
+
+/* mobile styles */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+  section {
+    font-size: 5dvw;
+    padding: 15px;
+  }
+  header {
+    font-size: 5.5dvw;
+    letter-spacing: 2px;
+  }
+  nav div {
+    width: 95%;
+    font-size: 4.5dvw;
+    padding: 12px;
+    letter-spacing: 1px;
+  }
+  nav div::after {
+    display: none;
+  }
+  dialog {
+    width: 85dvw;
+    font-size: 4.5dvw;
+    padding: 15px;
+  }
+  footer {
+    width: 100%;
+    font-size: 4.5dvw;
+    padding: 8px;
+    left: 0;
+    right: auto;
+    bottom: 0;
+  }
+}

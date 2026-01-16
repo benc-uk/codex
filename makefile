@@ -17,6 +17,9 @@ build-lua: ## Build Lua WebAssembly binary
 run: ## Run development server
 	cd web && npm run dev
 
+serve: build ## Build and serve preview version
+	cd web && npm run preview
+	
 clean: ## Clean build artifacts and dependencies
 	rm -rf web/public/lua.wasm web/node_modules
 

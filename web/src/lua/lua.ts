@@ -27,7 +27,7 @@ export async function initLua(): Promise<LuaVM> {
   // See golua/main.go for the other side of this bridge and explanation on why
   globalThis.lua = {} as LuaVM
 
-  const wasmSrc = await WebAssembly.instantiateStreaming(fetch('lua.wasm'), go.importObject)
+  const wasmSrc = await WebAssembly.instantiateStreaming(fetch('/lua.wasm'), go.importObject)
   // eslint-disable-next-line @typescript-eslint/no-floating-promises
   go.run(wasmSrc.instance)
 

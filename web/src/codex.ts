@@ -1,7 +1,7 @@
 // ===================================================================================
 // Codex - Interactive Storytelling Platform
 // Copyright (C) 2025 Ben Coleman, Licensed under the MIT License
-// webapp.ts - Main web application entry point & state using Alpine.js
+// codex.ts - Main web application entry point
 // ===================================================================================
 
 import Alpine from 'alpinejs'
@@ -31,9 +31,16 @@ Alpine.data('appState', () => ({
   // Application initialization & entry point
   // =====================================================================
   async init() {
-    // first segment of URL is story name (without .yaml or path prefix)
-    const storyName = window.location.pathname.split('/')[1] || 'main'
-    story = await Story.parse(`stories/${storyName}.yaml`)
+    // get story name from query string, default to 'cave'
+    const urlParams = new URLSearchParams(window.location.search)
+    const storyUrl = urlParams.get('story')
+    if (!storyUrl) {
+      console.error('No story URL specified')
+      return
+    }
+    console.log(`Hello ${storyUrl}`)
+
+    story = await Story.parse(storyUrl)
 
     // Find anchor in URL and go there if present
     let startSectionId = 'start'
@@ -77,7 +84,7 @@ Alpine.data('appState', () => ({
   gotoSection(sectionId: string) {
     if (sectionId === 'restart') {
       localStorage.removeItem('codex_state')
-      window.location.href = window.location.pathname
+      window.location.href = window.location.href.split('#')[0]
       return
     }
 
@@ -121,15 +128,15 @@ Alpine.data('appState', () => ({
   },
 
   // =====================================================================
-  // Handle using an item from the character sheet
+  // Handle interactive event triggering with confirmation
   // =====================================================================
-  async useItem(itemId: string): Promise<void> {
-    const res = await this.confirm(`Are you sure you want to use the ${niceify(itemId)}?`)
+  async triggerEvent(msg: string, eventId: string, ...args: string[]): Promise<void> {
+    const res = await this.confirm(`${msg}\n\nAre you sure?`)
     if (!res) {
       return
     }
 
-    const message = story.trigger('use_item', itemId)
+    const message = story.trigger(eventId, ...args)
 
     this.state = story.getState()
     this.notify(message)

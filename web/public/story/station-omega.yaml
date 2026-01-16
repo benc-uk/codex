@@ -1,4 +1,5 @@
 title: Station Omega - Emergency Protocol
+system: sci-fi
 author: Codex AI
 version: 1.0
 
@@ -10,8 +11,9 @@ vars:
   luck_init: 0
   stamina_init: 0
   oxygen: 100
+  player_name: ''
   equip: ['emergency_kit']
-  consumables: []
+  items: []
   keycards: []
   systems_checked: 0
   crew_saved: 0
@@ -54,6 +56,15 @@ init: |
     return contains(keycards, card_name)
   end
 
+  function generate_name()
+    local first_names = {"Alex", "Jordan", "Taylor", "Morgan", "Casey", "Riley", "Cameron", "Avery", "Quinn", "Sage", "Reese", "Dakota", "Skyler", "Phoenix", "River"}
+    local last_names = {"Chen", "Rodriguez", "Nakamura", "O'Brien", "Kowalski", "Dubois", "Petrov", "Kim", "Santos", "Schmidt", "Andersson", "Patel", "Hassan", "Nguyen", "Silva"}
+    local first = first_names[d(#first_names)]
+    local last = last_names[d(#last_names)]
+    return first.." "..last
+  end
+
+  player_name = generate_name()
   stamina = d(6) + d(6) + 12
   skill = d(6) + 6
   luck = d(6) + 6
@@ -66,12 +77,18 @@ events:
     params: [item_id]
     run: |
       if item_id == "medkit" then
+        if stamina == stamina_init then
+          return "You don't need to use the medkit right now."
+        end
         stamina = math.min(stamina_init, stamina + 6)
-        remove(consumables, "medkit")
+        remove(items, "medkit")
         return "You use the medkit and restore 6 stamina."
       elseif item_id == "oxygen_canister" then
+        if oxygen == 100 then
+          return "Your oxygen levels are already full."
+        end
         oxygen = math.min(100, oxygen + 30)
-        remove(consumables, "oxygen_canister")
+        remove(items, "oxygen_canister")
         return "You use the oxygen canister and restore 30 oxygen."
       end
       return "You can't use that item right now."
@@ -155,7 +172,6 @@ sections:
       Skill: {skill}
       Stamina: {stamina}
       Luck: {luck}
-      Oxygen: {oxygen}%
     options:
       check_terminal:
         text: 'Check the emergency terminal'
@@ -179,8 +195,6 @@ sections:
     text: |
       The main corridor is in chaos. Emergency lights flicker, casting long shadows. Smoke drifts from damaged ceiling panels, and you can hear the groan of stressed metal. A body lies slumped against the wall - a crew member who didn't make it.
 
-      Oxygen: {oxygen}%
-
       Corridor access: North leads to the Medical Bay, South to Security Office, East to Crew Quarters, West to the Cafeteria. Your quarters are behind you.
     run: |
       if s.visits == 1 then
@@ -196,7 +210,6 @@ sections:
         text: 'Search the crew member'
         flags: [once]
         run: |
-          insert(equip, "keycard_green")
           insert(keycards, "green")
         notify: 'You find a GREEN SECURITY KEYCARD on the body. It might unlock restricted areas.'
 
@@ -204,8 +217,6 @@ sections:
     title: 'Security Office'
     text: |
       The security office is trashed. Monitors show static or broken camera feeds across the station. A weapons locker on the wall is sealed with a biometric lock, but it appears damaged.
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 2
     options:
       back: ['Return to corridor', main_corridor]
@@ -222,10 +233,10 @@ sections:
         text: 'The locker opens!'
         flags: [once]
         run: |
-          insert(equip, "plasma_pistol")
-          insert(consumables, "medkit")
+          insert(items, "medkit")
+          insert(items, "medkit")
           s.locker_opened = true
-        notify: 'You obtain a PLASMA PISTOL and a MEDKIT!'
+        notify: 'You obtain 2 MEDKITS!'
         goto: security_office
       hack_fail:
         <<: *luck_fail
@@ -247,8 +258,6 @@ sections:
     title: 'Medical Bay'
     text: |
       {contains(equip, "flashlight") and "Your flashlight illuminates the medical bay. It's in surprisingly good condition. Emergency power keeps the lights on and several medical stations are still functional. Cabinets line the walls." or "The medical bay is dark - most of the emergency lights are out. You can barely see the cabinets and equipment through the gloom."}
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 2
     options:
       back: ['Return to corridor', main_corridor]
@@ -257,9 +266,9 @@ sections:
         if: contains(equip, "flashlight")
         flags: [once]
         run: |
-          insert(consumables, "medkit")
-          insert(consumables, "medkit")
-          insert(consumables, "oxygen_canister")
+          insert(items, "medkit")
+          insert(items, "medkit")
+          insert(items, "oxygen_canister")
         notify: 'You find 2 MEDKITS and an OXYGEN CANISTER!'
       cabinets_too_dark:
         text: 'Search medical cabinets'
@@ -286,16 +295,13 @@ sections:
     title: 'Cryo-Pod Discovery'
     text: |
       Inside the medical bay's emergency cryo-pod, you find an unconscious crew member - Dr. Sarah Chen, the station's chief scientist. She's alive but injured.
-
-      Oxygen: {oxygen}%
     options:
       revive:
         text: 'Revive Dr. Chen with a medkit'
-        if: contains(consumables, "medkit")
+        if: contains(items, "medkit")
         run: |
-          remove(consumables, "medkit")
+          remove(items, "medkit")
           crew_saved = crew_saved + 1
-          insert(equip, "keycard_blue")
           insert(keycards, "blue")
         notify: 'Dr. Chen wakes up and thanks you. She gives you her BLUE SECURITY KEYCARD and tells you about a weapons cache in the Armory on Deck 2.'
         goto: medical_bay
@@ -303,7 +309,6 @@ sections:
         text: 'Take her blue keycard (leave her in stasis)'
         if: not contains(keycards, "blue")
         run: |
-          insert(equip, "keycard_blue")
           insert(keycards, "blue")
         notify: 'You carefully remove her BLUE SECURITY KEYCARD. She remains in cryo-sleep, safe for now.'
         goto: medical_bay
@@ -316,8 +321,6 @@ sections:
     title: 'Crew Quarters'
     text: |
       The crew quarters section is damaged. Several doors are sealed shut, but a few rooms are accessible. You hear a banging sound from one of the rooms.
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 2
     options:
       back: ['Return to corridor', main_corridor]
@@ -330,9 +333,8 @@ sections:
         text: 'Search accessible quarters'
         flags: [once]
         run: |
-          temp.found_gold = d(6) + d(6)
-          insert(consumables, "oxygen_canister")
-        notify: 'You find some credits ({temp.found_gold}) and an OXYGEN CANISTER in the abandoned quarters.'
+          insert(items, "oxygen_canister")
+        notify: 'You find an OXYGEN CANISTER in the abandoned quarters.'
 
   hostile_encounter_1:
     title: 'Combat: Security Drone'
@@ -342,8 +344,6 @@ sections:
       SECURITY DRONE ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
 
       {fight_msg}
-
-      Oxygen: {oxygen}%
     vars: { stamina: 8, skill: 7, name: 'security drone', luck_used: false }
     options:
       <<: *combat
@@ -351,18 +351,38 @@ sections:
         text: 'Salvage the drone'
         if: s.stamina <= 0
         run: |
-          insert(equip, "power_cell")
-          insert(equip, "keycard_red")
           insert(keycards, "red")
-        notify: 'The drone sparks and shuts down. You salvage a POWER CELL and find a RED SECURITY KEYCARD in its memory bank!'
+        notify: 'The drone sparks and shuts down. You find a RED SECURITY KEYCARD in its memory bank!'
         goto: crew_quarters
+
+  hostile_encounter_2:
+    title: 'Combat: Mutated Crew Member'
+    text: |
+      You push open the storage room door and immediately recoil. The stench is overwhelming. Inside, what was once a crew member has been horrifically mutated by radiation exposure. Their skin glows with a sickly green luminescence, and their eyes are clouded white. 
+
+      The creature lets out an inhuman shriek and lunges at you!
+
+      MUTATED CREW MEMBER ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
+
+      {fight_msg}
+    vars: { stamina: 10, skill: 6, name: 'mutant', luck_used: false }
+    options:
+      <<: *combat
+      victory:
+        text: 'Search the storage room'
+        if: s.stamina <= 0
+        run: |
+          insert(items, "medkit")
+          insert(items, "oxygen_canister")
+        notify: 'The mutated crew member collapses. You try not to think about who they once were. Searching the storage room, you find a MEDKIT and OXYGEN CANISTER.'
+        goto: cafeteria
 
   cafeteria:
     title: 'Cafeteria'
     text: |
       The station cafeteria is eerily quiet. Tables are overturned, and food is scattered across the floor. The kitchen area is still accessible.
 
-      Oxygen: {oxygen}%
+      {not s.storage_checked and "You hear strange scraping sounds coming from the storage room." or ""}
     run: oxygen = oxygen - 2
     options:
       back: ['Return to corridor', main_corridor]
@@ -380,6 +400,11 @@ sections:
           remove(equip, "ration_pack")
           stamina = math.min(stamina_init, stamina + 3)
         notify: 'You eat the ration pack and restore 3 stamina.'
+      investigate_storage:
+        text: 'Investigate the storage room'
+        if: not s.storage_checked
+        run: s.storage_checked = true
+        goto: hostile_encounter_2
       to_engineering:
         text: 'Take the service elevator to Engineering (Deck 2)'
         goto: engineering_deck
@@ -389,9 +414,9 @@ sections:
     text: |
       The engineering deck is filled with the smell of burning circuits. Warning lights illuminate damaged consoles and sparking conduits. The reactor room door glows red with a warning: "RADIATION HAZARD - GREEN CLEARANCE REQUIRED".
 
-      Oxygen: {oxygen}%
+      {not s.lab_explored and "A nearby door is marked 'RESEARCH LAB - AUTHORIZED PERSONNEL ONLY'. You can hear movement inside." or ""}
 
-      Exits: Reactor Room (Green Keycard), Armory (Green Keycard), Life Support, Observation Deck
+      Exits: Reactor Room (Green Keycard), Armory (Green Keycard), Life Support, Observation Deck, Research Lab
     run: oxygen = oxygen - 3
     options:
       reactor:
@@ -410,6 +435,11 @@ sections:
         text: 'Enter Armory'
         if: not has_keycard("green")
         notify: 'The door requires a GREEN SECURITY KEYCARD.'
+      research_lab:
+        text: 'Enter Research Lab'
+        if: not s.lab_explored
+        run: s.lab_explored = true
+        goto: hostile_encounter_3
       life_support: ['Go to Life Support', life_support]
       observation: ['Go to Observation Deck', observation_deck]
       elevator_up: ['Take elevator to Deck 3', main_corridor]
@@ -419,19 +449,24 @@ sections:
     text: |
       The reactor room is a nightmare. The containment field flickers unstably around the fusion core. Radiation alarms wail, and your emergency kit's dosimeter clicks ominously.
 
-      Oxygen: {oxygen}%
-
-      A control console near the door appears operational.
+      {not s.mutant_defeated and "A horrifically mutated technician lurks near the control console, their body fused with cables and machinery. They turn toward you with glowing eyes!" or "A control console near the door appears operational."}
     run: |
       oxygen = oxygen - 5
       if not reactor_stable then
         stamina = stamina - 2
       end
     options:
-      back: ['Exit quickly', engineering_deck]
+      back:
+        text: 'Exit quickly'
+        if: s.mutant_defeated or s.mutant_defeated == nil
+        goto: engineering_deck
+      fight_mutant:
+        text: 'Fight the reactor mutant'
+        if: not s.mutant_defeated
+        goto: reactor_mutant
       stabilize:
         text: 'Attempt to stabilize the reactor'
-        if: not reactor_stable
+        if: not reactor_stable and s.mutant_defeated
         flags: [once]
         run: |
           local roll = d(6) + d(6) + skill
@@ -446,12 +481,54 @@ sections:
         notify: '{temp.msg}'
         goto: reactor_room
 
+  reactor_mutant:
+    title: 'Combat: Reactor Technician Mutant'
+    text: |
+      The creature that was once a reactor technician has become something far worse than the other mutants. Exposed to concentrated radiation from the core breach, their body has fused with the reactor's control cables. Sparks of electricity arc across their metallic skin as they lunge at you!
+
+      REACTOR MUTANT ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
+
+      {fight_msg}
+    vars: { stamina: 11, skill: 8, name: 'reactor mutant', luck_used: false }
+    options:
+      <<: *combat
+      victory:
+        text: 'Access the controls'
+        if: s.stamina <= 0
+        run: |
+          s.mutant_defeated = true
+          insert(items, "oxygen_canister")
+        notify: 'The reactor mutant collapses, finally at peace. You find an OXYGEN CANISTER near the body. The control console is now accessible.'
+        goto: reactor_room
+
+  hostile_encounter_3:
+    title: 'Combat: Mutated Engineer'
+    text: |
+      The research lab is in chaos - shattered containment vessels leak glowing fluid across the floor. In the center of the room stands what was once Chief Engineer Marcus Webb. 
+
+      Massive radiation exposure has transformed him into something monstrous. His body is covered in grotesque tumors that pulse with radiation, and his protective suit has fused with his mutated flesh. He turns toward you, his face twisted in permanent agony, and attacks with inhuman strength!
+
+      MUTATED ENGINEER ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
+
+      {fight_msg}
+    vars: { stamina: 12, skill: 7, name: 'mutated engineer', luck_used: false }
+    options:
+      <<: *combat
+      victory:
+        text: 'Examine the lab'
+        if: s.stamina <= 0
+        run: |
+          insert(items, "medkit")
+          insert(items, "medkit")
+          skill = skill + 1
+          skill_init = skill_init + 1
+        notify: 'The mutated engineer finally falls. You find his research notes on radiation exposure protocols and 2 MEDKITS. Reading the notes increases your Skill by 1.'
+        goto: engineering_deck
+
   armory:
     title: 'Armory'
     text: |
       The armory is a treasure trove. Weapon racks line the walls, though many are empty. Emergency supplies are stacked in the corner.
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 2
     options:
       back: ['Exit Armory', engineering_deck]
@@ -459,25 +536,25 @@ sections:
         text: 'Take weapons and supplies'
         flags: [once]
         run: |
-          insert(equip, "plasma_rifle")
           insert(equip, "combat_armor")
-          insert(consumables, "medkit")
+          insert(items, "medkit")
+          insert(items, "medkit")
           skill = skill + 2
-        notify: 'You equip a PLASMA RIFLE and COMBAT ARMOR. Your Skill increases by 2!'
+          skill_init = skill_init + 2
+        notify: 'You equip COMBAT ARMOR and find 2 MEDKITS. Your Skill increases by 2!'
       emergency_supplies:
         text: 'Search emergency supplies'
         flags: [once]
         run: |
-          insert(consumables, "oxygen_canister")
-          insert(consumables, "oxygen_canister")
-        notify: 'You find 2 OXYGEN CANISTERS!'
+          insert(items, "oxygen_canister")
+          insert(items, "oxygen_canister")
+          insert(equip, "power_cell")
+        notify: 'You find 2 OXYGEN CANISTERS and a POWER CELL!'
 
   life_support:
     title: 'Life Support Systems'
     text: |
       The life support control room is in critical condition. Half the systems are offline, and oxygen levels are dropping station-wide.
-
-      Oxygen: {oxygen}%
 
       A main console still has power.
     run: oxygen = oxygen - 3
@@ -513,8 +590,6 @@ sections:
       The observation deck provides a panoramic view of the disaster. Large sections of the station's outer hull are missing, venting atmosphere into space. Neptune looms in the background, beautiful and indifferent.
 
       Through the viewport, you can see the docking bay on Deck 1 - your only hope of escape.
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 2
     options:
       back: ['Return to Engineering', engineering_deck]
@@ -530,8 +605,6 @@ sections:
     title: 'Computer Core - Deck 1'
     text: |
       The computer core is the brain of Station Omega. Banks of servers hum with emergency power. A central terminal displays critical system statuses - all are red except for the docking bay controls.
-
-      Oxygen: {oxygen}%
 
       Exits: Access Tunnel (leads to Docking Bay), Emergency Shaft (to Observation Deck)
     run: oxygen = oxygen - 3
@@ -556,8 +629,6 @@ sections:
     title: 'Docking Bay Access Tunnel'
     text: |
       The access tunnel is damaged and partially collapsed. As you navigate through the debris, you hear a mechanical whirring ahead. Something is moving in the darkness.
-
-      Oxygen: {oxygen}%
     run: oxygen = oxygen - 3
     options:
       forward:
@@ -573,8 +644,6 @@ sections:
       HEAVY DEFENSE UNIT ⎯⎯⎯ Skill: {s.skill} Stamina: {s.stamina}
 
       {fight_msg}
-
-      Oxygen: {oxygen}%
     vars: { stamina: 14, skill: 8, name: 'defense bot', luck_used: false }
     options:
       <<: *combat
@@ -595,7 +664,6 @@ sections:
 
       Station integrity is at critical levels. The entire structure groans and shudders. You need to choose NOW.
 
-      Oxygen: {oxygen}%
       Systems Stabilized: {systems_checked}/3
       Crew Saved: {crew_saved}
     options:
@@ -630,7 +698,6 @@ sections:
 
       Final Stats:
       Stamina: {stamina}/{stamina_init}
-      Oxygen: {oxygen}%
       Systems Stabilized: {systems_checked}/3
       Crew Saved: {crew_saved}
 
@@ -651,7 +718,6 @@ sections:
 
       Final Stats:
       Stamina: {stamina}/{stamina_init}
-      Oxygen: {oxygen}%
       Systems Stabilized: {systems_checked}/3
       Crew Saved: {crew_saved}
 
@@ -670,7 +736,6 @@ sections:
 
       Final Stats:
       Stamina: {stamina}/{stamina_init}
-      Oxygen: {oxygen}%
       Systems Stabilized: {systems_checked}/3
       Crew Saved: {crew_saved}
 
